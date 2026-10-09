@@ -2,19 +2,22 @@ import * as THREE from '../../../lib/three/three.module.js';
 import { createBuildings } from './buildings.js';
 import { createGrid } from './grid.js';
 import { createSphere } from './sphere.js';
+import { createAtmosphere } from './atmosphere.js';
 
 export function createNeonCity() {
   const root = new THREE.Group();
   let sphere;
+  let atmosphere;
   return {
     init(scene) {
-      scene.background = new THREE.Color(0x090411);
-      scene.fog = new THREE.FogExp2(0x090411, 0.0055);
+      scene.background = new THREE.Color(0x0b0616);
+      scene.fog = new THREE.FogExp2(0x0b0616, 0.006);
       sphere = createSphere();
-      root.add(createGrid(), createBuildings(), sphere.object);
+      atmosphere = createAtmosphere();
+      root.add(createGrid(), createBuildings(), sphere.object, atmosphere.object);
       scene.add(root);
     },
-    update(dt) { sphere?.update(dt); },
+    update(dt) { sphere?.update(dt); atmosphere?.update(dt); },
     dispose() {
       root.removeFromParent();
       const geometries = new Set(), materials = new Set(), textures = new Set();
@@ -32,6 +35,7 @@ export function createNeonCity() {
       materials.forEach(material => material.dispose());
       root.clear();
       sphere = null;
+      atmosphere = null;
     }
   };
 }

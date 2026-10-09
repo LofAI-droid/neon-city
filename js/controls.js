@@ -5,6 +5,7 @@ export function createControls(camera, canvas) {
   const keys = new Set();
   const velocity = new THREE.Vector3();
   const desired = new THREE.Vector3();
+  const difference = new THREE.Vector3();
   const forward = new THREE.Vector3();
   const right = new THREE.Vector3();
   const up = new THREE.Vector3(0, 1, 0);
@@ -76,7 +77,7 @@ export function createControls(camera, canvas) {
       if (desired.lengthSq() > 1) desired.normalize();
       desired.multiplyScalar(22);
       // Exact exponential integration for constant input during this frame.
-      camera.position.addScaledVector(desired, dt).addScaledVector(velocity.clone().sub(desired), (1 - decay) / smoothing);
+      camera.position.addScaledVector(desired, dt).addScaledVector(difference.copy(velocity).sub(desired), (1 - decay) / smoothing);
       velocity.sub(desired).multiplyScalar(decay).add(desired);
     },
     reset,

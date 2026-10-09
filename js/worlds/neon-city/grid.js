@@ -9,7 +9,7 @@ export function createGrid() {
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  const material = new THREE.LineBasicMaterial({ color: 0x72d8e3, transparent: true, opacity: 0.48, depthWrite: false });
+  const material = new THREE.LineBasicMaterial({ color: 0x72d8e3, transparent: true, opacity: 0.57, depthWrite: false });
   const grid = new THREE.LineSegments(geometry, material);
   grid.position.z = -90;
   return grid;

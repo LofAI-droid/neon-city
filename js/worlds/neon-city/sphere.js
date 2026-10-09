@@ -17,24 +17,36 @@ function glowTexture() {
 
 export function createSphere() {
   const root = new THREE.Group();
-  root.position.set(0, 17, -110);
+  root.position.set(0, 19, -82);
+  const sourceSphere = new THREE.SphereGeometry(11, 24, 14);
+  const shellGeometry = new THREE.WireframeGeometry(sourceSphere);
+  sourceSphere.dispose();
   const shell = new THREE.LineSegments(
-    new THREE.WireframeGeometry(new THREE.SphereGeometry(10, 24, 14)),
-    new THREE.LineBasicMaterial({ color: 0x83cddd, transparent: true, opacity: 0.2, depthWrite: false })
+    shellGeometry,
+    new THREE.LineBasicMaterial({ color: 0x83cddd, transparent: true, opacity: 0.28, depthWrite: false })
   );
   root.add(shell);
   const rings = new THREE.Group();
-  const ringGeometry = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 129 }, (_, i) => {
-    const angle = i / 128 * Math.PI * 2;
-    return new THREE.Vector3(Math.cos(angle) * 10.15, Math.sin(angle) * 10.15, 0);
-  }));
-  const blue = new THREE.LineBasicMaterial({ color: 0x9ce1e8, transparent: true, opacity: 0.42, depthWrite: false });
-  const gold = new THREE.LineBasicMaterial({ color: 0xd9b780, transparent: true, opacity: 0.4, depthWrite: false });
+  const ringLayers = [[], []];
+  const point = new THREE.Vector3();
   for (let i = 0; i < 7; i++) {
-    const ring = new THREE.Line(ringGeometry, i % 3 === 0 ? gold : blue);
-    ring.rotation.set(i * 0.61, i * 0.86, i * 0.29);
-    rings.add(ring);
+    const rotation = new THREE.Euler(i * 0.61, i * 0.86, i * 0.29);
+    const layer = ringLayers[i % 3 === 0 ? 1 : 0];
+    for (let j = 0; j < 96; j++) {
+      for (const step of [j, j + 1]) {
+        const angle = step / 96 * Math.PI * 2;
+        point.set(Math.cos(angle) * 11.15, Math.sin(angle) * 11.15, 0).applyEuler(rotation);
+        layer.push(point.x, point.y, point.z);
+      }
+    }
   }
+  ringLayers.forEach((positions, index) => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    rings.add(new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
+      color: index ? 0xe2c18b : 0xa8e9ee, transparent: true, opacity: 0.5, depthWrite: false
+    })));
+  });
   root.add(rings);
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
   glow.scale.set(14, 14, 1);
@@ -46,7 +58,7 @@ export function createSphere() {
     object: root,
     update(dt) {
       time += dt;
-      root.position.y = 17 + Math.sin(time * 0.65) * 0.7;
+      root.position.y = 19 + Math.sin(time * 0.65) * 0.7;
       shell.rotation.y = time * 0.075;
       rings.rotation.set(time * 0.035, time * -0.065, time * 0.02);
       const pulse = 14 + Math.sin(time * 1.5) * 0.6;

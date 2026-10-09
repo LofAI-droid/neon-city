@@ -6,7 +6,9 @@ export function createEngine(container) {
   const scene = new THREE.Scene();
   const camera = createCamera(window.innerWidth / window.innerHeight);
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  let qualityIndex = 1;
+  const qualities = [{ name: 'licht', ratio: 1 }, { name: 'balans', ratio: 1.25 }, { name: 'scherp', ratio: 1.5 }];
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, qualities[qualityIndex].ratio));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.domElement.tabIndex = 0;
@@ -21,14 +23,25 @@ export function createEngine(container) {
   let frames = 0;
   let elapsed = 0;
   let running = false;
+  const frameTimes = new Float32Array(240);
+  let sampleCount = 0;
+  let sampleIndex = 0;
+  const qualityButton = document.querySelector('#quality-toggle');
+  qualityButton.addEventListener('click', () => {
+    qualityIndex = (qualityIndex + 1) % qualities.length;
+    qualityButton.textContent = `Beeld: ${qualities[qualityIndex].name}`;
+    resize();
+    previous = null; frames = 0; elapsed = 0; sampleCount = 0; sampleIndex = 0;
+    qualityButton.blur(); renderer.domElement.focus({ preventScroll: true });
+  }, { signal: events.signal });
   function resize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, qualities[qualityIndex].ratio));
     renderer.setSize(window.innerWidth, window.innerHeight);
   }
   window.addEventListener('resize', resize, { signal: events.signal });
-  document.addEventListener('visibilitychange', () => { previous = null; frames = 0; elapsed = 0; }, { signal: events.signal });
+  document.addEventListener('visibilitychange', () => { previous = null; frames = 0; elapsed = 0; sampleCount = 0; sampleIndex = 0; }, { signal: events.signal });
   renderer.domElement.addEventListener('webglcontextlost', event => {
     event.preventDefault();
     renderer.setAnimationLoop(null);
@@ -44,9 +57,16 @@ export function createEngine(container) {
     controls.update(dt);
     world?.update(dt);
     renderer.render(scene, camera);
-    if (rawDelta > 0) { frames++; elapsed += rawDelta; }
+    if (rawDelta > 0) {
+      frames++; elapsed += rawDelta;
+      frameTimes[sampleIndex] = rawDelta * 1000;
+      sampleIndex = (sampleIndex + 1) % frameTimes.length;
+      sampleCount = Math.min(sampleCount + 1, frameTimes.length);
+    }
     if (elapsed >= 1) {
       performanceLabel.textContent = `${Math.round(frames / elapsed)} FPS · ${renderer.info.render.calls} draws`;
+      const samples = Array.from(frameTimes.subarray(0, sampleCount)).sort((a, b) => a - b);
+      performanceLabel.title = `P95 frametijd: ${samples[Math.max(0, Math.ceil(samples.length * 0.95) - 1)].toFixed(1)} ms · renderfactor ${renderer.getPixelRatio()} · ${renderer.info.render.lines} lijnsegmenten`;
       frames = 0; elapsed = 0;
     }
   }

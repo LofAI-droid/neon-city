@@ -12,7 +12,7 @@ aside { position: fixed; bottom: 26px; left: 36px; width: 355px; padding: 17px 1
 #performance { letter-spacing: .02em; color: #668b96; }
 .keys { display: grid; gap: 7px; font-size: 11px; color: #a0b6c4; }
 kbd { display: inline-block; min-width: 21px; padding: 2px 4px; margin-right: 4px; border: 1px solid #71c6d132; border-radius: 3px; text-align: center; font: inherit; color: #b7e7e9; }
-.actions { display: flex; gap: 8px; margin-top: 13px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
 button { font: inherit; font-size: 11px; color: #a3dce0; background: #12212b; border: 1px solid #659eab55; border-radius: 3px; padding: 7px 9px; cursor: pointer; }
 button:hover, button[aria-pressed="true"] { border-color: #8ae9ed; background: #17303a; }
 button:focus-visible { outline: 2px solid #d9bd84; outline-offset: 3px; }
