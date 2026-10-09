@@ -17,6 +17,7 @@ export function createNeonCity() {
       root.add(createGrid(), createBuildings(), sphere.object, atmosphere.object);
       scene.add(root);
     },
+    getEnergyDistance() { return sphere?.getDistance() ?? Infinity; },
     update(dt, camera) { sphere?.update(dt, camera); atmosphere?.update(dt); },
     dispose() {
       sphere?.dispose();

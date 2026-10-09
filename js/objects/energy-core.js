@@ -102,6 +102,7 @@ export function createEnergyCore({ position = [0, 0, 0], settings: overrides = {
   applyVisuals();
   return {
     object: root,
+    getDistance() { return coreState.distance; },
     getInteractionState() {
       const { distance, activation, resonance, intensity, state } = coreState;
       return { distance, activation, resonance, intensity, state };

@@ -1,5 +1,6 @@
 import * as THREE from '../lib/three/three.module.js';
 import { testEnergyCore } from './energy-core.js';
+import { testAudio } from './audio.js';
 import { createCamera } from '../js/camera.js';
 import { createControls } from '../js/controls.js';
 import { createBuildings } from '../js/worlds/neon-city/buildings.js';
@@ -76,5 +77,6 @@ try {
   world.dispose();
   testEnergyCore(check, renderer);
   renderer.dispose(); renderer.forceContextLoss();
+  await testAudio(check);
 } catch (error) { results.push(`FAIL — ${error.stack}`); }
 output.replaceChildren(...results.map(text => { const line = document.createElement('p'); line.textContent = text; return line; }));

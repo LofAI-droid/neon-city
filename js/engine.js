@@ -2,7 +2,7 @@ import * as THREE from '../lib/three/three.module.js';
 import { createCamera } from './camera.js';
 import { createControls } from './controls.js';
 
-export function createEngine(container) {
+export function createEngine(container, { onUpdate } = {}) {
   const scene = new THREE.Scene();
   const camera = createCamera(window.innerWidth / window.innerHeight);
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false });
@@ -56,6 +56,7 @@ export function createEngine(container) {
     previous = now;
     controls.update(dt);
     world?.update(dt, camera);
+    onUpdate?.(dt, world);
     renderer.render(scene, camera);
     if (rawDelta > 0) {
       frames++; elapsed += rawDelta;

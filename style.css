@@ -20,3 +20,12 @@ button:focus-visible { outline: 2px solid #d9bd84; outline-offset: 3px; }
 #status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 520px; padding: 20px; background: #090713e8; border: 1px solid #63c5d540; font-size: 13px; line-height: 1.6; }
 #status[hidden] { display: none; }
 @media (max-height: 600px) { header { top: 18px; } aside { bottom: 15px; } .keys { gap: 3px; } }
+
+#audio-panel { position: fixed; right: 28px; bottom: 26px; width: 300px; padding: 16px 18px; border: 1px solid #63c5d52b; background: #090713d9; border-radius: 4px; }
+#audio-panel .actions { margin-top: 0; }
+.volume-row { display: flex; align-items: center; gap: 10px; font-size: 11px; color: #a0b6c4; margin-top: 13px; }
+#audio-volume { flex: 1; min-width: 60px; accent-color: #83cddd; }
+#audio-volume-value { min-width: 32px; text-align: right; }
+#audio-status { margin: 10px 0 0; font-size: 10px; line-height: 1.5; color: #87a4b4; }
+#audio-mix { letter-spacing: .02em; }
+@media (max-width: 760px) { #audio-panel { top: 24px; bottom: auto; right: 16px; width: 245px; } }

@@ -1,4 +1,4 @@
-# Neon City v0.3 — fase 3
+# Neon City v0.4A — audio-engine
 
 Een lokale 3D-wireframe-stad met 108 reproduceerbare gebouwen, rastervloer,
 een interactieve energiekern en subtiele zwevende lichtsporen. HTML, CSS en
@@ -195,3 +195,132 @@ geen langdurige benchmark of garantie op stabiele GPU-frametijden.
 De automatische test rendert ook op exact nul afstand en aan beide kanten
 van de kern, zonder consolefout, ongeldige schaal of ongeldige opacity.
 Alle lokale module-imports bestaan; `git diff --check` is schoon.
+
+
+## Fase 4A — audio-engine
+
+Klik rechtsonder op **Start audio**. Voor die klik wordt geen AudioContext
+of audiospeler aangemaakt en klinkt niets. De stadscompositie en kerncompositie
+spelen daarna elk als onafhankelijke HTMLAudioElement-loop via een eigen
+MediaElementAudioSourceNode en GainNode naar één mastergain. Geen fetch,
+decodeAudioData, AudioBuffer van de volledige compositie of nieuwe dependency.
+De browser beheert zelf het streamen, bufferen en decoderen van de MP3's;
+de hoeveelheid gecomprimeerde data die hij buffert is browserafhankelijk.
+
+**Pauzeer audio** fade't de uitgang gedurende 180 ms uit en pauzeert beide
+spelers op hun huidige afspeeltijd. **Start audio** hervat ze na een nieuwe
+klik, zonder terugzetten naar seconde nul of dubbele bronkoppeling.
+**Mute/Unmute** fade't alleen de mastergain; beide tijdlijnen en de actuele
+nabijheidsmix blijven doorlopen. De volumeschuif regelt 0–100% mastervolume
+(standaard 65%). Er zijn geen nieuwe sneltoetsen. De volumeschuif en knoppen
+gebruiken de bestaande uitsluiting van formulierelementen in Free Flight.
+
+`js/audio/audio-settings.js` bevat alle relatieve URLs en mixinstellingen:
+
+- Stad: `./assets/audio/city-ambient.mp3`, stabiele gain 0,55.
+- Kern: `./assets/audio/energy-core.mp3`, maximale gain 0,45.
+- `fadeStartDistance: 90`: buiten die afstand kernlaag stil.
+- `fullVolumeDistance: 12`: binnen die afstand maximale kernlaag.
+- Smoothstep tussen de grenzen, met `setTargetAtTime` en tijdconstante 0,65 s.
+
+De afstand komt uit de bestaande kern na haar wereld-update, inclusief
+zweefbeweging en alle drie de camera-assen. Er is geen afzonderlijk
+hardgecodeerd audio-centrum. De kerntrack loopt ook op gain nul door;
+naderen start haar niet telkens opnieuw. Bij R of wegvliegen neemt alleen
+de kernlaag geleidelijk af. De uitlezing **Kernmix** toont het doelpercentage;
+de hoorbare gain loopt door de demping iets na. Fase 4A is een
+**afstandsafhankelijke mix**, geen binaurale of stereo-positionering met
+PannerNode. MP3-loops zijn niet gegarandeerd sample-perfect/gapless: eventuele
+stilte in de bron of encoderpadding kan aan het einde hoorbaar blijven.
+
+Ontbrekende of onleesbare bestanden en afgewezen play-promises verschijnen
+in het audiopaneel. Beide spelers worden dan gepauzeerd; de 3D-wereld blijft
+bruikbaar. Corrigeer het bestand op dezelfde locatie en klik opnieuw op
+Start audio. De engine voorkomt dubbele initialisatie en ruimt spelers,
+eventlisteners, fades/timers en AudioNodes op bij verwijderen van de pagina.
+Safari kan bij slaap of een onderbreking opnieuw een expliciete Hervat audio-
+klik verlangen. Er wordt nooit automatisch vanuit een timer afspelen hervat.
+
+### Lokale muziek en Git
+
+De daadwerkelijk aanwezige bestanden zijn `city-ambient.mp3` (30.724.209 bytes)
+en `energy-core.mp3` (7.125.342 bytes). Voor wijzigingen gaf
+`git ls-files assets/audio` geen output: geen muziekbestanden werden gevolgd.
+Nieuw `.gitignore` sluit `/assets/audio/*.mp3`, `*.wav` en `*.m4a` uit, plus
+`.DS_Store`. De muziek is niet gewijzigd, verplaatst, hernoemd of geüpload.
+`assets/audio/README.md` houdt de map reproduceerbaar. Op een andere computer
+moeten de MP3's apart worden overgezet; een Git-clone bevat die muziek niet.
+
+### Zelf controleren in Safari
+
+1. Vernieuw http://localhost:8000: geen geluid tot Start audio.
+2. Klik Start audio en vlieg naar de bol. De stad blijft klinken en de kernlaag
+   wordt geleidelijk sterker; vlieg ook boven/onder de bol of door het centrum.
+3. Vlieg terug of druk R: kernlaag neemt af, stad blijft stabiel.
+4. Test volume, mute/unmute, pauzeren en opnieuw starten.
+5. Laat beide composities hun volledige duur doorlopen om de loopovergangen
+   muzikaal te beoordelen. Luister ook naar klikjes bij naderen en wegvliegen.
+6. Controleer FPS/P95 met audio uit en aan, in dezelfde beeldstand.
+7. http://localhost:8000/tests/browser.html voert de bestaande 26 controles
+   en negen audio-logica/lifecycle-controles uit met nagebootste audio-nodes;
+   die pagina start geen echte muziek.
+8. http://localhost:8000/tests/audio-streaming.html test de echte MP3-spelers
+   met mastervolume nul, na een knopklik: voortgang, loopvlaggen, pauze,
+   hervatten na een nieuwe klik en een bewust ontbrekende test-URL.
+   Die 404 is in die fouttest verwacht; de bestaande MP3's blijven staan.
+
+Nieuwe bestanden: `.gitignore`, `js/audio/audio-settings.js`,
+`audio-manager.js`, `audio-panel.js`, `assets/audio/README.md`,
+`tests/audio.js`, `tests/audio-streaming.html` en `tests/audio-streaming.js`.
+Gewijzigd: `index.html`, `style.css`, `js/main.js`, `js/engine.js`,
+`js/worlds/neon-city/world.js`, `js/objects/energy-core.js` (alleen een
+afstand-accessor), `tests/browser.js` en dit README. Camera, besturing,
+stadsgeometrie, kernvisuals en lokale Three.js blijven behouden.
+Niet ontwikkeld: Guided Journey/fase 4B, audio-reactieve visualisaties,
+binaurale positionering, portalen, wereldwissels of publicatie.
+Geen Git-add, commit, push of upload uitgevoerd.
+
+### Uitgevoerde fase-4A-controles
+
+Safari: alle 35 regressiecontroles PASS, plus zes controles met de echte
+MP3-spelers (start, voortgang, stil doorlopen/afstand, pauze, hervatten en
+ontbrekend bestand). Handmatig Start/Pauzeer, Mute/Unmute, volume, vliegen
+en R bediend. De kernmix steeg bij naderen tot 98% en ging bij R terug naar
+0%; stadsgain blijft constant. De daadwerkelijke MP3-duur is circa 768,1 s
+(stad) en 178,1 s (kern). Volledige loopovergangen en hoorbare muzikale
+kwaliteit/klikvrijheid zijn niet beluisterd; die controle blijft aan de gebruiker.
+De automatische test controleert de loopvlaggen en tijdlijnvoortgang, niet de
+klank aan het einde van de composities. Tijdens starten werd kort 26 FPS
+gezien; tijdens afspelen/vliegen weer circa 30 FPS met tien draws. Geen
+langdurige FPS-, geheugen- of GPU-profielmeting uitgevoerd.
+
+Git-controle na implementatie:
+
+`git status --short`:
+
+```text
+ M README.md
+ M index.html
+ M js/engine.js
+ M js/main.js
+ M js/objects/energy-core.js
+ M js/worlds/neon-city/world.js
+ M style.css
+ M tests/browser.js
+?? .gitignore
+?? assets/
+?? js/audio/
+?? tests/audio-streaming.html
+?? tests/audio-streaming.js
+?? tests/audio.js
+```
+
+`git check-ignore assets/audio/*.mp3`:
+
+```text
+assets/audio/city-ambient.mp3
+assets/audio/energy-core.mp3
+```
+
+`assets/` in de status omvat het nieuwe audio-README; de MP3's zijn genegeerd
+en worden niet gevolgd. Alle lokale module-imports bestaan.

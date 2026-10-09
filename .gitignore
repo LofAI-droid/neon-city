@@ -1,0 +1,5 @@
+# Lokale muziek blijft buiten versiebeheer.
+/assets/audio/*.mp3
+/assets/audio/*.wav
+/assets/audio/*.m4a
+.DS_Store
