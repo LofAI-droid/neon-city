@@ -55,7 +55,7 @@ export function createEngine(container) {
     const rawDelta = previous === null ? 0 : (now - previous) / 1000;
     previous = now;
     controls.update(dt);
-    world?.update(dt);
+    world?.update(dt, camera);
     renderer.render(scene, camera);
     if (rawDelta > 0) {
       frames++; elapsed += rawDelta;

@@ -17,8 +17,9 @@ export function createNeonCity() {
       root.add(createGrid(), createBuildings(), sphere.object, atmosphere.object);
       scene.add(root);
     },
-    update(dt) { sphere?.update(dt); atmosphere?.update(dt); },
+    update(dt, camera) { sphere?.update(dt, camera); atmosphere?.update(dt); },
     dispose() {
+      sphere?.dispose();
       root.removeFromParent();
       const geometries = new Set(), materials = new Set(), textures = new Set();
       root.traverse(object => {

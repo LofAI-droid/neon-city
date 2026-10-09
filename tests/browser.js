@@ -1,4 +1,5 @@
 import * as THREE from '../lib/three/three.module.js';
+import { testEnergyCore } from './energy-core.js';
 import { createCamera } from '../js/camera.js';
 import { createControls } from '../js/controls.js';
 import { createBuildings } from '../js/worlds/neon-city/buildings.js';
@@ -72,6 +73,8 @@ try {
   try { renderer.render(scene, createCamera(4 / 3)); } finally { console.error = originalError; }
   check('WebGL-scène en atmosferische shader renderen zonder fout', errors.length === 0 && renderer.info.render.calls === 10);
   results.push(`INFO — ${renderer.info.render.calls} draws; ${renderer.info.render.lines} lijnsegmenten`);
-  world.dispose(); renderer.dispose(); renderer.forceContextLoss();
+  world.dispose();
+  testEnergyCore(check, renderer);
+  renderer.dispose(); renderer.forceContextLoss();
 } catch (error) { results.push(`FAIL — ${error.stack}`); }
-output.textContent = results.join('\n');
+output.replaceChildren(...results.map(text => { const line = document.createElement('p'); line.textContent = text; return line; }));

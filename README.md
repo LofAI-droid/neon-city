@@ -1,7 +1,7 @@
-# Neon City v0.2 — fase 2
+# Neon City v0.3 — fase 3
 
 Een lokale 3D-wireframe-stad met 108 reproduceerbare gebouwen, rastervloer,
-een geanimeerde energiekern en subtiele zwevende lichtsporen. HTML, CSS en
+een interactieve energiekern en subtiele zwevende lichtsporen. HTML, CSS en
 vanilla JavaScript ES-modules, met Three.js 0.180.0 lokaal onder `lib/three/`.
 Geen buildstap, runtime-CDN, backend of online assets.
 
@@ -106,3 +106,92 @@ teller bleef circa 30 FPS, ook in de lichte stand; een FPS-stijging of betere
 P95 ten opzichte van v0.1 is niet aangetoond. Er is geen langdurige benchmark
 of afzonderlijke GPU-profielmeting uitgevoerd. Alle relatieve module-imports
 bestaan; `git diff --check` leverde geen fouten op.
+
+
+## Fase 3 — Interactive Energy Core
+
+De kern reageert op de echte 3D-afstand tussen camera en het actuele,
+licht zwevende wereldcentrum (basispositie `[0, 19, -82]`, bolradius 11).
+De camera, stad, rastervloer, besturing en beeldstanden zijn ongewijzigd.
+
+- **Rust:** vanaf 90 units. Langzame draaiing, drie zachte orbitale banen,
+  subtiele puls en hoofdzakelijk cyaan met goud.
+- **Activatie:** van 90 tot 26 units. Intensiteit en draaisnelheid nemen
+  continu toe; extra banen verschijnen geleidelijk.
+- **Resonantie:** binnen 26 units, met maximum binnen 12 units. Alle twaalf
+  banen zichtbaar, zacht turquoise/goud kleurverloop en een rustige puls.
+
+De afstandswaarden lopen via smoothstep in elkaar over. Reactiewaarden
+volgen met exponentiële demping (tijdconstante 1,2 seconde). Bij wegvliegen
+of R neemt de reactie dus geleidelijk af. Rotatie wordt geïntegreerd in
+de tijd; veranderende snelheid zet de rotatiehoek niet plotseling om.
+
+Instellingen staan in `js/objects/energy-core-settings.js`: afstandsdrempels,
+rotatie 0,075–0,19 rad/s, lijn-/gloedhelderheid, kleuren, pulsfrequentie
+0,9 rad/s (circa zeven seconden per puls), pulsamplitude 2,5–5,5%, zweefbeweging
+en aantal/segmenten van de banen. Optionele gedeeltelijke overrides worden
+bij het aanmaken samengevoegd. `sphere.js` bevat alleen de plaatsing in Neon City.
+
+De herbruikbare `createEnergyCore({ position, settings, onInteraction })`
+levert `object`, `update(deltaTime, camera)`, `getInteractionState()` en
+`dispose()`. Een optionele `onInteraction(snapshot)` ontvangt maximaal
+circa tien keer per seconde afstand, activatie, resonantie, intensiteit en
+het toestandslabel. Dit is het uitbreidingspunt voor toekomstige audio of
+portalen; er wordt nu geen audio afgespeeld of navigatie uitgevoerd.
+Toestandslabels beschrijven de afstand; visuele waarden blijven vloeiend
+nalopen. Bij gebruik in een andere wereld moet die wereld de kern updaten
+en opruimen, zoals Neon City dat doet.
+
+De extra banen blijven binnen de bestaande twee kleurbundels. In totaal
+vijf drawcalls voor de kern en tien voor de stad, net als v0.2. De orbitale
+geometrie bevat 864 segmenten in plaats van 672 (+192); de overige kerngeometrie
+is behouden. Alleen kleine uniforms, kleuren, opaciteit en transformaties
+veranderen per frame. Geen nieuwe textures van internet, dependencies,
+postprocessing, dynamische bufferuploads of schaduwberekeningen.
+
+Vlak bij het exacte centrum wordt de schijnbare grootte van de gloed zacht
+begrensd en vervaagt het kleine massieve midden. Dit voorkomt dat het hele
+scherm wit wordt wanneer je door de kern vliegt. De orbitale lijnen blijven
+aanwezig; normale perspectief- en near-plane-clipping blijft gelden.
+Helderheid is een visuele gloed/opacity, geen echte belichting van gebouwen.
+
+### Zelf testen in Safari
+
+1. Vernieuw http://localhost:8000. Bij de start sta je circa 145 units van
+   de kern: rust. Bekijk de langzame draaiing en subtiele puls.
+2. Houd ↑ vast: na circa drie seconden kom je in de activatiezone.
+   Laat los om de geleidelijke verandering te bekijken.
+3. Vlieg verder naar de bol. Stijg met Spatie ongeveer een halve tot een
+   hele seconde om dichter bij de centrumhoogte (19 units) te komen.
+   Binnen 26 units begint resonantie; binnen 12 units is de reactie maximaal.
+   Blijf even hangen, zodat de gedempte reactie kan volgen.
+4. Vlieg door de bol, zijwaarts, omhoog of omlaag en vervolgens weg.
+   Alle drie assen tellen mee. Buiten de reactieafstand keert rust terug.
+5. Druk R. Controleer de oorspronkelijke positie en geleidelijk uitdoven.
+6. Vergelijk FPS/P95 tijdens rust en resonantie in dezelfde beeldstand.
+   Houd de muis op de FPS-teller voor de frametijdgegevens.
+7. Open http://localhost:8000/tests/browser.html. De aanvullende kerncontroles
+   testen afstand op X/Y/Z, getransformeerde plaatsing, nabijheidsgrenzen,
+   terugkeer naar rust, 30/120 FPS, callbacks, passage door het centrum,
+   shader-rendering, drawcallbudget en zelfstandig opruimen. De bestaande
+   vluchtcontroles blijven eveneens aanwezig.
+
+Gewijzigd in fase 3: `index.html`, `js/engine.js`,
+`js/worlds/neon-city/world.js`, `js/worlds/neon-city/sphere.js`,
+`tests/browser.html`, `tests/browser.js` en dit README. Nieuw: `js/objects/energy-core.js`,
+`energy-core-settings.js`, `energy-response.js` en `tests/energy-core.js`.
+Geen wijzigingen aan `controls.js`, `camera.js`, gebouwen, raster, atmosfeer,
+CSS of lokale Three.js. Geen commit of push door deze ontwikkelfase.
+
+
+### Uitgevoerde fase-3-controles
+
+In Safari op 9 oktober 2026: alle 26 browsercontroles PASS (12 bestaande,
+14 aanvullende kerncontroles). Handmatig rustbeeld, naderen, resonantie,
+verder doorvliegen, terugvliegen en R gecontroleerd. In de waargenomen
+rust-/naderings-/nabijheidsbeelden bleef de teller rond 30 FPS met tien
+tekenopdrachten, zonder waargenomen daling. Dit is een korte praktijkcontrole,
+geen langdurige benchmark of garantie op stabiele GPU-frametijden.
+De automatische test rendert ook op exact nul afstand en aan beide kanten
+van de kern, zonder consolefout, ongeldige schaal of ongeldige opacity.
+Alle lokale module-imports bestaan; `git diff --check` is schoon.
