@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090411">
+  <title>Neon City — fase 1</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="world" aria-label="Neon City: vrij verkenbare 3D-wereld"></main>
+  <header><span class="eyebrow">EXPERIMENT 001 · V0.1</span><h1>NEON CITY</h1><p>Een stad van licht. Vrij om te verkennen.</p></header>
+  <aside aria-label="Besturing">
+    <div class="panel-title"><span>VRIJE VLUCHT</span><span id="performance">Opstarten…</span></div>
+    <div class="keys"><span><kbd>↑</kbd><kbd>↓</kbd> vooruit / achteruit</span><span><kbd>←</kbd><kbd>→</kbd> draaien</span><span><kbd>A</kbd><kbd>D</kbd> zijwaarts</span><span><kbd>Spatie</kbd><kbd>Shift</kbd> stijgen / dalen</span><span><kbd>R</kbd> startpositie</span></div>
+    <div class="actions"><button id="mouse-toggle" type="button" aria-pressed="false">Muisblik: uit</button><button id="reset" type="button">Terug naar start</button></div>
+    <p id="mouse-hint">Activeer muisblik en sleep in de wereld om rond te kijken.</p>
+  </aside>
+  <div id="status" role="status">De stad wordt opgebouwd…</div>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

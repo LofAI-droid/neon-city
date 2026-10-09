@@ -1,0 +1,22 @@
+* { box-sizing: border-box; }
+:root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #090411; color: #c5e9ed; }
+body { margin: 0; overflow: hidden; }
+#world { position: fixed; inset: 0; }
+canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+header { position: fixed; top: 32px; left: 36px; pointer-events: none; text-shadow: 0 2px 18px #090411; }
+.eyebrow { font-size: 10px; letter-spacing: .28em; color: #699da8; }
+h1 { margin: 9px 0 6px; font-size: 26px; letter-spacing: .24em; font-weight: 300; }
+header p { margin: 0; font-size: 12px; color: #87a4b4; }
+aside { position: fixed; bottom: 26px; left: 36px; width: 355px; padding: 17px 19px 12px; border: 1px solid #63c5d52b; background: #090713d9; border-radius: 4px; }
+.panel-title { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .16em; color: #81bec7; padding-bottom: 12px; }
+#performance { letter-spacing: .02em; color: #668b96; }
+.keys { display: grid; gap: 7px; font-size: 11px; color: #a0b6c4; }
+kbd { display: inline-block; min-width: 21px; padding: 2px 4px; margin-right: 4px; border: 1px solid #71c6d132; border-radius: 3px; text-align: center; font: inherit; color: #b7e7e9; }
+.actions { display: flex; gap: 8px; margin-top: 13px; }
+button { font: inherit; font-size: 11px; color: #a3dce0; background: #12212b; border: 1px solid #659eab55; border-radius: 3px; padding: 7px 9px; cursor: pointer; }
+button:hover, button[aria-pressed="true"] { border-color: #8ae9ed; background: #17303a; }
+button:focus-visible { outline: 2px solid #d9bd84; outline-offset: 3px; }
+#mouse-hint { font-size: 10px; line-height: 1.5; color: #718b9f; margin: 10px 0 0; }
+#status { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 520px; padding: 20px; background: #090713e8; border: 1px solid #63c5d540; font-size: 13px; line-height: 1.6; }
+#status[hidden] { display: none; }
+@media (max-height: 600px) { header { top: 18px; } aside { bottom: 15px; } .keys { gap: 3px; } }
