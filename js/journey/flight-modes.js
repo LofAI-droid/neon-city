@@ -8,14 +8,14 @@ export function createFlightModes(camera, controls, { visibility = document, but
   function render(message) {
     const state = journey?.getState();
     const label = mode === 'free' ? 'Guided Journey' : 'Terug naar Free Flight';
-    if (button && button.textContent !== label) button.textContent = label;
+    if (button) { button.disabled = !journey; if (button.textContent !== label) button.textContent = label; }
     if (progress) { progress.hidden = mode === 'free'; progress.value = state?.elapsed ?? 0; progress.max = state?.duration ?? 90; }
     if (message) notice = message;
     const text = notice || (mode === 'free' ? 'Vrij vliegen' : visibility.hidden ? 'Journey gepauzeerd — tab verborgen' : state?.phase === 'entry' ? 'Vloeiend naar het starttraject…' : `Guided Journey · ${Math.floor(state?.elapsed ?? 0)} / 90 s`);
     if (status && status.textContent !== text) status.textContent = text;
   }
   const api = {
-    setRoute(route) { api.stop(); journey?.dispose(); journey = route ? createJourney(route) : null; },
+    setRoute(route) { api.stop(); journey?.dispose(); journey = route ? createJourney(route) : null; render(); },
     start() {
       if (disposed || mode !== 'free' || !journey) return false;
       controls.getVelocity(velocity);

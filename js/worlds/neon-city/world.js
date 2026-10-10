@@ -1,27 +1,31 @@
 import * as THREE from '../../../lib/three/three.module.js';
 import { createBuildings } from './buildings.js?v=0.4B';
 import { createGrid } from './grid.js';
-import { createSphere } from './sphere.js';
+import { createSphere } from './sphere.js?v=wp1';
+import { NEON_CITY_CONFIG } from './config.js';
+import { validateWorldConfig } from '../../world-contract.js';
 import { createAtmosphere } from './atmosphere.js';
-import { createNeonCityRoute } from './journey-route.js';
+import { createNeonCityRoute } from './journey-route.js?v=wp1';
 
-export function createNeonCity() {
+export function createNeonCity({ config = NEON_CITY_CONFIG } = {}) {
+  validateWorldConfig(config);
   const root = new THREE.Group();
   let sphere;
   let atmosphere;
   let journeyRoute;
   return {
+    config,
     init(scene) {
-      scene.background = new THREE.Color(0x0b0616);
-      scene.fog = new THREE.FogExp2(0x0b0616, 0.006);
-      sphere = createSphere();
+      sphere = createSphere(config.settings.energyCore);
       atmosphere = createAtmosphere();
       const buildings = createBuildings();
-      journeyRoute = createNeonCityRoute(buildings.userData.collisionBounds);
+      journeyRoute = config.guidedJourney ? createNeonCityRoute(buildings.userData.collisionBounds, config) : null;
       root.add(createGrid(), buildings, sphere.object, atmosphere.object);
       scene.add(root);
     },
     getJourneyRoute() { return journeyRoute; },
+    getAudioState() { return { proximityDistance: sphere?.getDistance() ?? Infinity }; },
+    // Compatibility accessor; the bootstrap now uses the neutral contract.
     getEnergyDistance() { return sphere?.getDistance() ?? Infinity; },
     update(dt, camera) { sphere?.update(dt, camera); atmosphere?.update(dt); },
     dispose() {

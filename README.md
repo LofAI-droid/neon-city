@@ -422,3 +422,15 @@ Gewijzigd: `index.html`, `style.css`, `js/main.js`, `js/engine.js`,
 De audio-engine, audiobestanden, kernmodule, vloer en cameramodule blijven
 ongewijzigd. `.gitignore` blijft ongewijzigd; beide MP3's worden nog genegeerd
 en zijn niet opgenomen in Git. Geen commit, push of publicatie uitgevoerd.
+
+## World Engine v1.0 — werkpakket 1
+
+WP1 op branch `feature/world-engine-v1` vertrekt van v0.4B (`2528bd6`).
+Camera-start, lens en omgeving staan nu in `js/worlds/neon-city/config.js`.
+De engine valideert het wereldcontract; R gebruikt de actieve wereldpose.
+`getAudioState()` levert een neutrale nabijheidsafstand aan de bestaande audio.
+Neon City, Free Flight, Guided Journey en muziek blijven behouden.
+
+Zie [WP1: wereldconfiguratie en wereldcontract](docs/world-engine/WP1_WERELDCONFIGURATIE.md)
+voor het configuratievoorbeeld, API, bestandsoverzicht, tests en beperkingen.
+De bestaande auditdocumenten beschrijven het eerdere vertrekpunt en zijn behouden.

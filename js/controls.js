@@ -1,5 +1,5 @@
 import * as THREE from '../lib/three/three.module.js';
-import { resetCamera } from './camera.js';
+import { resetCamera } from './camera.js?v=wp1';
 
 export function createControls(camera, canvas, { onReset = () => {} } = {}) {
   let enabled = true;

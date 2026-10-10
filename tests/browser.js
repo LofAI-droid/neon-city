@@ -1,11 +1,14 @@
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js';
 import * as THREE from '../lib/three/three.module.js';
+import { testWorldContract } from './world-contract.js';
 import { testEnergyCore } from './energy-core.js';
-import { testJourney } from './journey.js';
-import { testAudio } from './audio.js';
-import { createCamera } from '../js/camera.js';
-import { createControls } from '../js/controls.js';
+import { testJourney } from './journey.js?v=wp1';
+import { testAudio } from './audio.js?v=wp1';
+import { createCamera } from '../js/camera.js?v=wp1';
+import { createControls } from '../js/controls.js?v=wp1';
 import { createBuildings } from '../js/worlds/neon-city/buildings.js';
-import { createNeonCity } from '../js/worlds/neon-city/world.js';
+import { applyWorldEnvironment } from '../js/world-contract.js';
+import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp1';
 
 const output = document.querySelector('#results');
 const results = [];
@@ -13,7 +16,7 @@ const check = (name, condition) => { results.push(`${condition ? 'PASS' : 'FAIL'
 const canvas = document.querySelector('#canvas');
 const key = (type, code) => canvas.dispatchEvent(new KeyboardEvent(type, { code, bubbles: true, cancelable: true }));
 function simulate(code, fps = 60) {
-  const camera = createCamera(1);
+  const camera = createCamera(1, NEON_CITY_CONFIG.camera);
   const controls = createControls(camera, canvas);
   key('keydown', code);
   for (let i = 0; i < fps; i++) controls.update(1 / fps);
@@ -31,13 +34,13 @@ try {
   check('Pijltjes draaien', simulate('ArrowLeft').rotation.y > 0 && simulate('ArrowRight').rotation.y < 0);
   const a = simulate('ArrowUp', 30), b = simulate('ArrowUp', 60), c = simulate('ArrowUp', 120);
   check('Beweging gelijk bij 30 / 60 / 120 FPS', a.position.distanceTo(b.position) < 0.00001 && b.position.distanceTo(c.position) < 0.00001);
-  const camera = createCamera(1), controls = createControls(camera, canvas);
+  const camera = createCamera(1, NEON_CITY_CONFIG.camera), controls = createControls(camera, canvas);
   key('keydown', 'Space'); controls.update(0.5); key('keyup', 'Space');
   const moved = camera.position.y;
   window.dispatchEvent(new Event('blur')); controls.update(1);
   check('Focusverlies stopt vastzittende toetsen', Math.abs(camera.position.y - moved) < 0.00001);
   key('keydown', 'KeyR');
-  check('R herstelt positie en oriëntatie', camera.position.distanceTo(createCamera(1).position) < 0.00001 && camera.rotation.y === 0);
+  check('R herstelt positie en oriëntatie', camera.position.distanceTo(createCamera(1, NEON_CITY_CONFIG.camera).position) < 0.00001 && camera.rotation.y === 0);
   controls.dispose();
   const buildingsA = createBuildings(), buildingsB = createBuildings();
   check('108 reproduceerbare gebouwen', buildingsA.userData.buildingCount === 108 && buildingsA.children.every((child, i) => {
@@ -53,6 +56,7 @@ try {
   check('Geen lijnsegmenten met lengte nul', degenerate === 0);
   disposeObject(buildingsA); disposeObject(buildingsB);
   const scene = new THREE.Scene(), world = createNeonCity();
+  applyWorldEnvironment(scene, world.config);
   world.init(scene); world.update(1 / 60);
   const geometrySet = new Set(), materialSet = new Set(), textureSet = new Set();
   scene.traverse(child => {
@@ -64,15 +68,17 @@ try {
   resources.forEach(resource => resource.addEventListener('dispose', () => disposed++));
   world.dispose();
   check('Alle geometrieën, materialen en textures opgeruimd', disposed === resources.length && scene.children.length === 0);
+  applyWorldEnvironment(scene, world.config);
   world.init(scene); world.update(1 / 60); world.dispose();
   check('Wereld kan opnieuw worden geïnitialiseerd', scene.children.length === 0);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(200, 150);
+  applyWorldEnvironment(scene, world.config);
   world.init(scene); world.update(1 / 60);
   const originalError = console.error;
   const errors = [];
   console.error = (...args) => { errors.push(args.join(' ')); originalError(...args); };
-  try { renderer.render(scene, createCamera(4 / 3)); } finally { console.error = originalError; }
+  try { renderer.render(scene, createCamera(4 / 3, NEON_CITY_CONFIG.camera)); } finally { console.error = originalError; }
   check('WebGL-scène en atmosferische shader renderen zonder fout', errors.length === 0 && renderer.info.render.calls === 10);
   results.push(`INFO — ${renderer.info.render.calls} draws; ${renderer.info.render.lines} lijnsegmenten`);
   world.dispose();
@@ -80,5 +86,6 @@ try {
   renderer.dispose(); renderer.forceContextLoss();
   await testAudio(check);
   testJourney(check, canvas);
+  await testWorldContract(check, canvas);
 } catch (error) { results.push(`FAIL — ${error.stack}`); }
 output.replaceChildren(...results.map(text => { const line = document.createElement('p'); line.textContent = text; return line; }));

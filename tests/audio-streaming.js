@@ -1,6 +1,6 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createFlightModes } from '../js/journey/flight-modes.js';
-import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp1';
+import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
 import { createAudioManager } from '../js/audio/audio-manager.js';
 const output = document.querySelector('#results');
 const startButton = document.querySelector('#start'), resumeButton = document.querySelector('#resume'), missingButton = document.querySelector('#missing');

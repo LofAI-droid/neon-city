@@ -1,7 +1,8 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createCamera } from './camera.js';
-import { createControls } from './controls.js?v=0.4B';
-import { createFlightModes } from './journey/flight-modes.js';
+import { createCamera, configureCamera } from './camera.js?v=wp1';
+import { validateWorldContract, applyWorldEnvironment } from './world-contract.js';
+import { createControls } from './controls.js?v=wp1';
+import { createFlightModes } from './journey/flight-modes.js?v=wp1';
 
 export function createEngine(container, { onUpdate } = {}) {
   const scene = new THREE.Scene();
@@ -75,7 +76,17 @@ export function createEngine(container, { onUpdate } = {}) {
     }
   }
   return {
-    setWorld(next) { world?.dispose(); world = next; world.init(scene); flightModes.setRoute(world.getJourneyRoute?.()); },
+    setWorld(next) {
+      validateWorldContract(next); // Reject bad config before touching the active world.
+      flightModes.stop();
+      world?.dispose(); world = next;
+      configureCamera(camera, world.config.camera);
+      controls.setEnabled(true);
+      applyWorldEnvironment(scene, world.config);
+      world.init(scene);
+      flightModes.setRoute(world.config.guidedJourney ? world.getJourneyRoute() : null);
+      previous = null;
+    },
     start() { if (running) return; running = true; previous = null; renderer.setAnimationLoop(frame); status.hidden = true; },
     dispose() {
       renderer.setAnimationLoop(null); running = false;

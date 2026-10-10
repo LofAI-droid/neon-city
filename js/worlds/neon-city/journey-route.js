@@ -1,8 +1,10 @@
 import * as THREE from '../../../lib/three/three.module.js';
 
-export function createNeonCityRoute(bounds) {
+import { NEON_CITY_CONFIG } from './config.js';
+
+export function createNeonCityRoute(bounds, config = NEON_CITY_CONFIG) {
   const positions = [
-    [0, 0,7,62], [8, 0,7.5,42], [15, 0,8,18],
+    [0, ...config.camera.position], [8, 0,7.5,42], [15, 0,8,18],
     [22, -6,9,7], [30, 6,12,-5], [40, -4,10,-18],
     [48, -6,13,-36], [57, -8,18,-54], [65, -8.8,21,-69.2],
     [70, -5,21,-67.3], [75, 3.5,21,-66.9], [80, 8.8,21,-69.2],
@@ -15,7 +17,7 @@ export function createNeonCityRoute(bounds) {
     [85,0,19,-82], [90,0,19,-82]
   ].map(([time,...value]) => ({ time, value }));
   const clearance = 0.8;
-  const coreCenter = new THREE.Vector3(0,19,-82);
+  const coreCenter = new THREE.Vector3(...config.settings.energyCore.position);
   const isSafe = point => point.y > 1 && point.distanceToSquared(coreCenter) > 13.5**2 && !bounds.some(box => point.x >= box.min.x-clearance && point.x <= box.max.x+clearance && point.y >= box.min.y-clearance && point.y <= box.max.y+clearance && point.z >= box.min.z-clearance && point.z <= box.max.z+clearance);
   const segmentSafe = (a,b) => {
     const sample = new THREE.Vector3(); const steps = Math.max(1, Math.ceil(a.distanceTo(b) / 0.4));

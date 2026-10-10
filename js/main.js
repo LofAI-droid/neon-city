@@ -5,7 +5,7 @@ let audioPanel;
 try {
   // Dynamic imports also surface missing local modules in the visible error message.
   const [{ createEngine }, { createNeonCity }] = await Promise.all([
-    import('./engine.js?v=0.4B'), import('./worlds/neon-city/world.js?v=0.4B')
+    import('./engine.js?v=wp1'), import('./worlds/neon-city/world.js?v=wp1')
   ]);
   try {
     const [{ createAudioManager }, { createAudioPanel }] = await Promise.all([
@@ -19,7 +19,7 @@ try {
     document.querySelector('#audio-start').disabled = true;
   }
   engine = createEngine(document.querySelector('#world'), { onUpdate(dt, world) {
-    audio?.updateDistance(world?.getEnergyDistance?.() ?? Infinity);
+    audio?.updateDistance(world?.getAudioState().proximityDistance ?? Infinity);
     audioPanel?.update(dt);
   } });
   engine.setWorld(createNeonCity());
