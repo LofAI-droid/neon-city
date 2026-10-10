@@ -1,3 +1,6 @@
+import * as THREE from '../lib/three/three.module.js';
+import { createFlightModes } from '../js/journey/flight-modes.js';
+import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js';
 import { createAudioManager } from '../js/audio/audio-manager.js';
 const output = document.querySelector('#results');
 const startButton = document.querySelector('#start'), resumeButton = document.querySelector('#resume'), missingButton = document.querySelector('#missing');
@@ -20,6 +23,15 @@ startButton.addEventListener('click', async () => {
   check('Beide onafhankelijke loops lopen ook stil door', after.every((track, i) => track.loop && !track.paused && track.time > before[i].time));
   check('Nabijheid wijzigt de tijdlijnen niet naar nul', after.every(track => track.time > 0.5) && manager.getState().coreMix === 0);
   append(`INFO — afspeeltijden ${after.map(track => track.time.toFixed(2)).join(' / ')} s; duur ${after.map(track => track.duration.toFixed(1)).join(' / ')} s`);
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0,7,62);
+  const modes = createFlightModes(camera, { getVelocity: out => out.set(0,0,0), setEnabled() {}, update() {} }, { visibility:new EventTarget(), button:null, progress:null, status:null });
+  modes.setRoute(createNeonCityRoute([]));
+  const journeyBefore = manager.getPlaybackState();
+  modes.start(); modes.update(25); manager.updateDistance(camera.position.distanceTo(new THREE.Vector3(0,19,-82))); modes.stop();
+  modes.start(); modes.update(modes.getState().entryDuration + 90);
+  await sleep(1200);
+  check('Echte MP3-tijdlijnen lopen door bij Journey-start, stop en voltooiing', modes.getState().mode === 'free' && manager.getPlaybackState().every((track,i) => !track.paused && track.time > journeyBefore[i].time));
+  modes.dispose();
   await manager.pause(); pausedTimes = manager.getPlaybackState(); await sleep(500);
   check('Pauze stopt beide spelers op hun huidige tijd', manager.getPlaybackState().every((track, i) => track.paused && Math.abs(track.time - pausedTimes[i].time) < 0.05));
   resumeButton.disabled = false;

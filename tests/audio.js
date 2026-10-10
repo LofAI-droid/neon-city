@@ -1,3 +1,6 @@
+import * as THREE from '../lib/three/three.module.js';
+import { createFlightModes } from '../js/journey/flight-modes.js';
+import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js';
 import { createAudioManager } from '../js/audio/audio-manager.js';
 import { coreMixAtDistance, AUDIO_SETTINGS } from '../js/audio/audio-settings.js';
 
@@ -38,6 +41,14 @@ export async function testAudio(check) {
   check('Audio: alleen kernlaag valt weg; stadsgain blijft constant', gains[2].target === 0 && gains[1].value === AUDIO_SETTINGS.cityVolume && playCalls === 2);
   await manager.pause(); await manager.start();
   check('Audio: pauzeren/hervatten hergebruikt context en bronnen', contexts === 1 && sources === 2 && playCalls === 4 && elements.every(element => element.currentTime === 17) && manager.getState().state === 'playing');
+  const camera = new THREE.PerspectiveCamera(); camera.position.set(0,7,62);
+  const modes = createFlightModes(camera, { getVelocity: out => out.set(0,0,0), setEnabled() {}, update() {} }, { visibility:new EventTarget(), button:null, progress:null, status:null });
+  modes.setRoute(createNeonCityRoute([]));
+  const callsBeforeJourney = playCalls;
+  for (let i=0;i<5;i++) { modes.start(); modes.update(20); manager.updateDistance(camera.position.distanceTo(new THREE.Vector3(0,19,-82))); modes.stop(); }
+  modes.start(); modes.update(modes.getState().entryDuration + 90);
+  check('Audio: Journey-wissels en voltooiing behouden beide tijdlijnen', playCalls === callsBeforeJourney && elements.every(element => element.currentTime === 17 && !element.paused) && manager.getState().state === 'playing');
+  modes.dispose();
   await manager.dispose(); await manager.dispose();
   check('Audio: cleanup sluit context eenmaal en koppelt nodes los', closed === 1 && disconnected === 5 && elements.every(element => element.paused));
   const failing = createAudioManager({ createContext: () => context, createElement() {

@@ -1,4 +1,4 @@
-# Neon City v0.4A — audio-engine
+# Neon City v0.4B — Guided Journey
 
 Een lokale 3D-wireframe-stad met 108 reproduceerbare gebouwen, rastervloer,
 een interactieve energiekern en subtiele zwevende lichtsporen. HTML, CSS en
@@ -324,3 +324,101 @@ assets/audio/energy-core.mp3
 
 `assets/` in de status omvat het nieuwe audio-README; de MP3's zijn genegeerd
 en worden niet gevolgd. Alle lokale module-imports bestaan.
+
+
+## Fase 4B — Guided Journey
+
+Klik **Start audio** wanneer je muziek wilt, vervolgens **Guided Journey**.
+De bestaande Python-server op localhost:8000 blijft voldoende. De veilige
+cinematografische route duurt precies 90 seconden; de aanloop vanaf je huidige
+positie telt afzonderlijk. Vanaf de oorspronkelijke startpositie duurt die
+oriëntatieovergang 2,5 seconden. Bij een start elders kan de aanloop langer zijn.
+
+| Vluchttijd | Route |
+| --- | --- |
+| 0–15 s | Langzaam de stad in |
+| 15–40 s | Tussen de gebouwen, met kleine zijwaartse en hoogteverschillen |
+| 40–65 s | Naar de kern; de bestaande audiocurve volgt de echte afstand |
+| 65–80 s | Rustige gedeeltelijke boog vóór de kern, buiten de geometrie |
+| 80–90 s | Uitdrijven nabij de kern, snelheid naar nul |
+
+**Terug naar Free Flight** onderbreekt onmiddellijk zonder camera- of audiosprong.
+De actuele vliegsnelheid wordt overgedragen en door de bestaande Free Flight
+geleidelijk afgeremd. R en Terug naar start onderbreken de Journey en voeren
+hun gebruikelijke reset uit. Na voltooiing keert Free Flight automatisch terug.
+Een verborgen tab pauzeert alleen de Journey en het renderen; de bestaande
+audiospelers worden door moduswissels of tabwissels niet herstart.
+
+De aanloop controleert conservatieve gebouwvolumes en een veiligheidsradius
+van 13,5 rond de kern (inclusief marge voor het zweven). Bij een geblokkeerde
+directe route gaat hij via vrije hoogte boven de stad. Vanuit een gebouw,
+de kern of onder de vloer wordt starten geweigerd met een melding; vlieg dan
+eerst naar vrije ruimte of druk R. Free Flight behoudt zijn bestaande vrijheid
+om door geometrie te bewegen. De routeveiligheid hoort bij de huidige wereld;
+bij gewijzigde gebouw- of kerngeometrie moet de route opnieuw worden getest.
+
+### Modules en instelbaarheid
+
+- `js/journey/flight-modes.js`: modusbeheer, UI, zichtbaarheid en cleanup.
+- `js/journey/journey.js`: herbruikbare cameramotor, afzonderlijke positie en
+  kijkrichting, tijd en snelheidsoverdracht.
+- `js/journey/timed-path.js`: Catmull-Rom-traject met vloeiende tijdmapping,
+  quintische aanloop en framerate-onafhankelijke interpolatie.
+- `js/worlds/neon-city/journey-route.js`: wereldspecifieke tijdpunten, posities,
+  kijkdoelen, veiligheidsmarge en aanloopplanning. Een andere wereld levert
+  via `getJourneyRoute()` dezelfde interface: `duration`, `positions`,
+  `targets`, `isSafe(point)` en `planEntry(origin, begin)`.
+- `buildings.js` levert alleen extra geometriegegevens voor de veiligheidscontrole;
+  de gegenereerde zichtbare geometrie blijft identiek.
+
+Geen nieuwe geometrie, materialen, audio-afhankelijkheden of renderloops.
+De bestaande renderer blijft op 10 drawcalls. De aanloopplanning gebeurt bij
+start; per frame worden alleen enkele vector- en curveberekeningen uitgevoerd.
+De gewijzigde ingangsmodule, engine, wereld, controls, gebouwen en stylesheet
+hebben lokale versie-URL's om oude Safari-modulecaches te vermijden.
+
+### Testen
+
+Open `http://localhost:8000/tests/browser.html`: 55 controles, inclusief alle
+35 bestaande controles, 19 Journey-controles en één extra audio-Journey-test.
+Controlepunten bij 30, 60 en 120 FPS hebben dezelfde positie en oriëntatie;
+de route wordt op 120 samples per seconde gecontroleerd op gebouw- en
+kernvrijheid, camera-roll en abrupte stappen. Tests dekken ook precies 90 s,
+aanloop apart, twintig herstarts, handmatige en automatische moduswissels,
+R, verborgen-tab-pauze, veilige omweg, onveilige start en eenmalige cleanup.
+
+Open `http://localhost:8000/tests/audio-streaming.html` en klik de drie
+knoppen achtereenvolgens zodra beschikbaar: zeven controles met de echte
+lokale MP3's, inclusief behoud van beide lopende tijdlijnen bij Journey-start,
+onderbreken en voltooiing. Deze audiotest gebruikt mastervolume nul.
+
+Controleer zelf in de stad ook het geluidsbeeld met je eigen volume, een hele
+Journey en onderbreken tijdens de aanloop en nabij de kern. Wissel tijdelijk
+naar een ander tabblad en controleer dat de voortgang bij terugkeer hervat,
+zonder verborgen tijd in te halen. Volume, mute en beeldkwaliteit blijven
+bedienbaar. MP3's blijven lokaal en onder de bestaande `.gitignore`.
+
+### Oplevercontrole fase 4B
+
+Uitgevoerd in Safari via de bestaande localhost:8000-server: alle 55
+regressiecontroles en alle zeven echte MP3-streamingcontroles geslaagd.
+Ook de volledige zichtbare vlucht, automatische terugkeer, herstart vanaf het
+eindpunt, onderbreken tijdens de aanloop, R en een verborgen-tab-pauze zijn
+handmatig gecontroleerd. De HUD meldde tijdens deze sessie ongeveer 59–60 FPS
+bij 10 drawcalls in balans; dit is een observatie, geen prestatiewinstmeting
+ten opzichte van v0.4A of garantie voor andere vensterformaten.
+De audioverificatie gebeurde op mute/mastervolume nul; beoordeel het hoorbare
+ruimtelijke mengresultaat zelf met je eigen volume. Geen openstaande testfouten.
+
+Toegevoegd: `js/journey/flight-modes.js`, `js/journey/journey.js`,
+`js/journey/timed-path.js`, `js/worlds/neon-city/journey-route.js`,
+`tests/journey.js`.
+
+Gewijzigd: `index.html`, `style.css`, `js/main.js`, `js/engine.js`,
+`js/controls.js`, `js/worlds/neon-city/buildings.js`,
+`js/worlds/neon-city/world.js`, `tests/browser.js`, `tests/audio.js`,
+`tests/audio-streaming.js`, `README.md`.
+
+De audio-engine, audiobestanden, kernmodule, vloer en cameramodule blijven
+ongewijzigd. `.gitignore` blijft ongewijzigd; beide MP3's worden nog genegeerd
+en zijn niet opgenomen in Git. Geen commit, push of publicatie uitgevoerd.

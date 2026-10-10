@@ -1,22 +1,27 @@
 import * as THREE from '../../../lib/three/three.module.js';
-import { createBuildings } from './buildings.js';
+import { createBuildings } from './buildings.js?v=0.4B';
 import { createGrid } from './grid.js';
 import { createSphere } from './sphere.js';
 import { createAtmosphere } from './atmosphere.js';
+import { createNeonCityRoute } from './journey-route.js';
 
 export function createNeonCity() {
   const root = new THREE.Group();
   let sphere;
   let atmosphere;
+  let journeyRoute;
   return {
     init(scene) {
       scene.background = new THREE.Color(0x0b0616);
       scene.fog = new THREE.FogExp2(0x0b0616, 0.006);
       sphere = createSphere();
       atmosphere = createAtmosphere();
-      root.add(createGrid(), createBuildings(), sphere.object, atmosphere.object);
+      const buildings = createBuildings();
+      journeyRoute = createNeonCityRoute(buildings.userData.collisionBounds);
+      root.add(createGrid(), buildings, sphere.object, atmosphere.object);
       scene.add(root);
     },
+    getJourneyRoute() { return journeyRoute; },
     getEnergyDistance() { return sphere?.getDistance() ?? Infinity; },
     update(dt, camera) { sphere?.update(dt, camera); atmosphere?.update(dt); },
     dispose() {
@@ -38,6 +43,7 @@ export function createNeonCity() {
       root.clear();
       sphere = null;
       atmosphere = null;
+      journeyRoute = null;
     }
   };
 }

@@ -1,5 +1,6 @@
 import * as THREE from '../lib/three/three.module.js';
 import { testEnergyCore } from './energy-core.js';
+import { testJourney } from './journey.js';
 import { testAudio } from './audio.js';
 import { createCamera } from '../js/camera.js';
 import { createControls } from '../js/controls.js';
@@ -78,5 +79,6 @@ try {
   testEnergyCore(check, renderer);
   renderer.dispose(); renderer.forceContextLoss();
   await testAudio(check);
+  testJourney(check, canvas);
 } catch (error) { results.push(`FAIL — ${error.stack}`); }
 output.replaceChildren(...results.map(text => { const line = document.createElement('p'); line.textContent = text; return line; }));

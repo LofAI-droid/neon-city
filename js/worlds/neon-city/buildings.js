@@ -5,6 +5,7 @@ export function createBuildings() {
   let state = CITY_SEED;
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
   const layers = [[], [], []];
+  const collisionBounds = [];
   const line = (layer, x1, y1, z1, x2, y2, z2) => layers[layer].push(x1, y1, z1, x2, y2, z2);
   function box(layer, x, y, z, width, height, depth) {
     const a = x - width / 2, b = x + width / 2, c = z - depth / 2, d = z + depth / 2;
@@ -64,6 +65,8 @@ export function createBuildings() {
           line(2, mastX, 0, z, mastX, height + 7, z);
           line(0, mastX, height * 0.55, z, x, height * 0.55, z);
         }
+        // Conservative envelopes also cover crowns, side details and antennae.
+        collisionBounds.push(new THREE.Box3(new THREE.Vector3(x-width*0.7, 0, z-depth*0.7), new THREE.Vector3(x+width*0.7, height+35, z+depth*0.7)));
         count++;
       }
     }
@@ -77,5 +80,6 @@ export function createBuildings() {
     group.add(new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color, opacity, transparent: true, depthWrite: false })));
   });
   group.userData.buildingCount = count;
+  group.userData.collisionBounds = collisionBounds;
   return group;
 }

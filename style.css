@@ -29,3 +29,7 @@ button:focus-visible { outline: 2px solid #d9bd84; outline-offset: 3px; }
 #audio-status { margin: 10px 0 0; font-size: 10px; line-height: 1.5; color: #87a4b4; }
 #audio-mix { letter-spacing: .02em; }
 @media (max-width: 760px) { #audio-panel { top: 24px; bottom: auto; right: 16px; width: 245px; } }
+
+.journey-row { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+#journey-progress { width: 130px; height: 4px; accent-color: #83cddd; }
+#journey-status { margin: 8px 0 0; color: #87a4b4; font-size: 10px; }

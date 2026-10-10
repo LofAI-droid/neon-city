@@ -1,6 +1,7 @@
 import * as THREE from '../lib/three/three.module.js';
 import { createCamera } from './camera.js';
-import { createControls } from './controls.js';
+import { createControls } from './controls.js?v=0.4B';
+import { createFlightModes } from './journey/flight-modes.js';
 
 export function createEngine(container, { onUpdate } = {}) {
   const scene = new THREE.Scene();
@@ -14,7 +15,9 @@ export function createEngine(container, { onUpdate } = {}) {
   renderer.domElement.tabIndex = 0;
   renderer.domElement.setAttribute('aria-label', '3D-stad. Gebruik de toetsenlegenda om vrij te vliegen.');
   container.appendChild(renderer.domElement);
-  const controls = createControls(camera, renderer.domElement);
+  let flightModes;
+  const controls = createControls(camera, renderer.domElement, { onReset: () => flightModes?.stop() });
+  flightModes = createFlightModes(camera, controls);
   const status = document.querySelector('#status');
   const performanceLabel = document.querySelector('#performance');
   const events = new AbortController();
@@ -54,7 +57,7 @@ export function createEngine(container, { onUpdate } = {}) {
     const dt = previous === null ? 0 : Math.min((now - previous) / 1000, 0.05);
     const rawDelta = previous === null ? 0 : (now - previous) / 1000;
     previous = now;
-    controls.update(dt);
+    flightModes.update(rawDelta);
     world?.update(dt, camera);
     onUpdate?.(dt, world);
     renderer.render(scene, camera);
@@ -72,11 +75,11 @@ export function createEngine(container, { onUpdate } = {}) {
     }
   }
   return {
-    setWorld(next) { world?.dispose(); world = next; world.init(scene); },
+    setWorld(next) { world?.dispose(); world = next; world.init(scene); flightModes.setRoute(world.getJourneyRoute?.()); },
     start() { if (running) return; running = true; previous = null; renderer.setAnimationLoop(frame); status.hidden = true; },
     dispose() {
       renderer.setAnimationLoop(null); running = false;
-      events.abort(); controls.dispose(); world?.dispose(); world = null;
+      events.abort(); flightModes.dispose(); controls.dispose(); world?.dispose(); world = null;
       renderer.dispose(); renderer.domElement.remove();
     }
   };
