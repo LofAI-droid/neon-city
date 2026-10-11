@@ -434,3 +434,11 @@ Neon City, Free Flight, Guided Journey en muziek blijven behouden.
 Zie [WP1: wereldconfiguratie en wereldcontract](docs/world-engine/WP1_WERELDCONFIGURATIE.md)
 voor het configuratievoorbeeld, API, bestandsoverzicht, tests en beperkingen.
 De bestaande auditdocumenten beschrijven het eerdere vertrekpunt en zijn behouden.
+
+## World Engine v1.0 — werkpakket 2
+
+WP2 leest de twee Neon City-muziekbronnen uit de wereldconfiguratie en koppelt
+de bediening via expliciete UI-adapters. Afstanden zijn per `distanceKey`
+beschikbaar; momenteel zijn maximaal twee gelijktijdige bronnen toegestaan.
+Zie [WP2: audio en gebruikersinterface](docs/world-engine/WP2_AUDIO_UI.md)
+voor het contract, de testresultaten en de grenzen vóór WP3.

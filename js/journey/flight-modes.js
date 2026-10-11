@@ -1,30 +1,24 @@
 import * as THREE from '../../lib/three/three.module.js';
 import { createJourney } from './journey.js';
 
-export function createFlightModes(camera, controls, { visibility = document, button = document.querySelector('#journey-toggle'), progress = document.querySelector('#journey-progress'), status = document.querySelector('#journey-status') } = {}) {
+export function createFlightModes(camera, controls, { visibility = document, onChange = () => {} } = {}) {
   let journey, mode = 'free', disposed = false, uiTime = 0, notice = '';
   const velocity = new THREE.Vector3();
   const events = new AbortController();
-  function render(message) {
-    const state = journey?.getState();
-    const label = mode === 'free' ? 'Guided Journey' : 'Terug naar Free Flight';
-    if (button) { button.disabled = !journey; if (button.textContent !== label) button.textContent = label; }
-    if (progress) { progress.hidden = mode === 'free'; progress.value = state?.elapsed ?? 0; progress.max = state?.duration ?? 90; }
-    if (message) notice = message;
-    const text = notice || (mode === 'free' ? 'Vrij vliegen' : visibility.hidden ? 'Journey gepauzeerd — tab verborgen' : state?.phase === 'entry' ? 'Vloeiend naar het starttraject…' : `Guided Journey · ${Math.floor(state?.elapsed ?? 0)} / 90 s`);
-    if (status && status.textContent !== text) status.textContent = text;
-  }
+  const state = () => ({ mode, available: Boolean(journey), notice, ...journey?.getState(), hidden: visibility.hidden });
+  const emit = () => onChange(state());
   const api = {
-    setRoute(route) { api.stop(); journey?.dispose(); journey = route ? createJourney(route) : null; render(); },
+    setOnChange(callback) { onChange = callback; emit(); },
+    setRoute(route) { api.stop(); journey?.dispose(); journey = route ? createJourney(route) : null; emit(); },
     start() {
       if (disposed || mode !== 'free' || !journey) return false;
       controls.getVelocity(velocity);
-      if (!journey.start(camera, velocity)) { render('Geen veilige aanloop. Vlieg eerst naar de vrije straat.'); return false; }
-      notice = ''; controls.setEnabled(false); mode = 'guided'; render(); return true;
+      if (!journey.start(camera, velocity)) { notice = 'unsafe-entry'; emit(); return false; }
+      notice = ''; controls.setEnabled(false); mode = 'guided'; emit(); return true;
     },
     stop() {
       if (mode === 'guided') { journey.getVelocity(velocity); journey.cancel(); controls.setEnabled(true, velocity); }
-      notice = ''; mode = 'free'; render();
+      notice = ''; mode = 'free'; emit();
     },
     update(dt) {
       if (disposed || visibility.hidden) return;
@@ -33,12 +27,11 @@ export function createFlightModes(camera, controls, { visibility = document, but
         journey.update(dt, camera);
         if (journey.getState().phase === 'complete') api.stop();
       }
-      uiTime += dt; if (uiTime >= 0.2) { uiTime = 0; render(); }
+      uiTime += dt; if (uiTime >= 0.2) { uiTime = 0; emit(); }
     },
-    getState() { return { mode, ...journey?.getState(), hidden: visibility.hidden }; },
-    dispose() { if (disposed) return; api.stop(); disposed = true; events.abort(); journey?.dispose(); journey = null; }
+    getState: state,
+    dispose() { if (disposed) return; api.stop(); disposed = true; events.abort(); journey?.dispose(); journey = null; onChange = () => {}; }
   };
-  button?.addEventListener('click', () => { if (mode === 'free') api.start(); else api.stop(); button.blur(); document.querySelector('#world canvas')?.focus({ preventScroll: true }); }, { signal: events.signal });
-  visibility.addEventListener('visibilitychange', () => render(), { signal: events.signal });
-  render(); return api;
+  visibility.addEventListener('visibilitychange', emit, { signal: events.signal });
+  emit(); return api;
 }

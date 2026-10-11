@@ -1,13 +1,15 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp1';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
 import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
-import { createAudioManager } from '../js/audio/audio-manager.js';
+import { createAudioManager } from '../js/audio/audio-manager.js?v=wp2';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
 const output = document.querySelector('#results');
 const startButton = document.querySelector('#start'), resumeButton = document.querySelector('#resume'), missingButton = document.querySelector('#missing');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const append = text => { const p = document.createElement('p'); p.textContent = text; output.appendChild(p); };
 const check = (label, value) => append(`${value ? 'PASS' : 'FAIL'} — ${label}`);
-const manager = createAudioManager({ settings: { cityUrl: '../assets/audio/city-ambient.mp3', coreUrl: '../assets/audio/energy-core.mp3', masterVolume: 0 } });
+const localAudio = { sources: NEON_CITY_CONFIG.audio.sources.map(source => ({ ...source, url: source.url.replace('./assets/', '../assets/') })) };
+const manager = createAudioManager({ audio: localAudio, settings: { masterVolume: 0 } });
 let pausedTimes;
 startButton.addEventListener('click', async () => {
   startButton.disabled = true; output.replaceChildren();
@@ -44,7 +46,7 @@ resumeButton.addEventListener('click', async () => {
 });
 missingButton.addEventListener('click', async () => {
   missingButton.disabled = true;
-  const failing = createAudioManager({ settings: { cityUrl: '../assets/audio/__ontbrekend_testbestand__.mp3', coreUrl: '../assets/audio/energy-core.mp3', masterVolume: 0 } });
+  const failing = createAudioManager({ audio: { sources: [{ ...localAudio.sources[0], url: '../assets/audio/__ontbrekend_testbestand__.mp3' }] }, settings: { masterVolume: 0 } });
   await failing.start();
   check('Ontbrekende MP3 geeft begrijpelijke foutstatus', failing.getState().state === 'error' && /kan niet|kon niet/.test(failing.getState().message));
   append(failing.getState().message);

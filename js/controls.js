@@ -11,8 +11,6 @@ export function createControls(camera, canvas, { onReset = () => {} } = {}) {
   const right = new THREE.Vector3();
   const up = new THREE.Vector3(0, 1, 0);
   const supported = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyR']);
-  const toggle = document.querySelector('#mouse-toggle');
-  const resetButton = document.querySelector('#reset');
   let mouseEnabled = false;
   let dragging = false;
   let lastX = 0;
@@ -33,16 +31,6 @@ export function createControls(camera, canvas, { onReset = () => {} } = {}) {
   on(window, 'keyup', event => { if (supported.has(event.code)) keys.delete(event.code); });
   on(window, 'blur', clear);
   on(document, 'visibilitychange', () => { if (document.hidden) clear(); });
-  on(toggle, 'click', () => {
-    mouseEnabled = !mouseEnabled;
-    dragging = false;
-    toggle.setAttribute('aria-pressed', String(mouseEnabled));
-    toggle.textContent = `Muisblik: ${mouseEnabled ? 'aan' : 'uit'}`;
-    canvas.style.cursor = mouseEnabled ? 'grab' : 'default';
-    toggle.blur();
-    canvas.focus({ preventScroll: true });
-  });
-  on(resetButton, 'click', () => { reset(); resetButton.blur(); canvas.focus({ preventScroll: true }); });
   on(canvas, 'pointerdown', event => {
     canvas.focus({ preventScroll: true });
     if (!enabled || !mouseEnabled || event.button !== 0) return;
@@ -62,6 +50,8 @@ export function createControls(camera, canvas, { onReset = () => {} } = {}) {
   on(canvas, 'lostpointercapture', stopDrag);
 
   return {
+    isMouseEnabled() { return mouseEnabled; },
+    setMouseEnabled(value) { mouseEnabled = Boolean(value); dragging = false; canvas.style.cursor = mouseEnabled ? 'grab' : 'default'; },
     getVelocity(target) { return target.copy(velocity); },
     setEnabled(value, inheritedVelocity) { clear(); enabled = value; if (enabled && inheritedVelocity) velocity.copy(inheritedVelocity); },
     update(dt) {

@@ -16,6 +16,14 @@ export const NEON_CITY_CONFIG = {
     fog: { type: 'exp2', color: 0x0b0616, density: 0.006 }
   },
   guidedJourney: true,
+  audio: {
+    sources: [
+      { id: 'city-ambient', type: 'global', url: './assets/audio/city-ambient.mp3', gain: 0.55 },
+      { id: 'energy-core', type: 'proximity', url: './assets/audio/energy-core.mp3', gain: 0.45,
+        distanceKey: 'energy-core', distance: { fadeStart: 90, fullVolume: 12 } }
+    ]
+  },
+  ui: { mixSourceId: 'energy-core', mixLabel: 'Kernmix' },
   settings: {
     energyCore: { position: [0, 19, -82], settings: ENERGY_CORE_DEFAULTS }
   }

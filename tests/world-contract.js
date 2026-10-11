@@ -1,11 +1,12 @@
 import * as THREE from '../lib/three/three.module.js';
-import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
 import { validateWorldConfig, validateWorldContract, applyWorldEnvironment } from '../js/world-contract.js';
 import { createCamera, configureCamera } from '../js/camera.js?v=wp1';
-import { createControls } from '../js/controls.js?v=wp1';
-import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp1';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp1';
-import { createEngine } from '../js/engine.js?v=wp1';
+import { createControls } from '../js/controls.js?v=wp2';
+import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp2';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
+import { createEngine } from '../js/engine.js?v=wp2';
+import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp2';
 import { coreMixAtDistance } from '../js/audio/audio-settings.js';
 
 const copyConfig = () => structuredClone(NEON_CITY_CONFIG);
@@ -30,11 +31,14 @@ export async function testWorldContract(check, canvas) {
   const later = copyConfig(); later.camera.position = [-9,13,42]; later.camera.rotation = [0.2,-0.3,0];
   configureCamera(camera, later.camera); const laterRotation = camera.quaternion.clone();
   camera.position.set(0,0,0); camera.rotation.set(0,0,0);
-  document.querySelector('#reset').click();
+  const resetButton = document.querySelector('#reset');
+  const resetPanel = createFlightPanel({ controls, canvas, engine:{ getQuality:()=>({ name:'balans' }) }, modes:{ getState:()=>({ mode:'free', available:false }), setOnChange() {} }, elements:{ reset:resetButton } });
+  resetButton.click();
   check('WP1: resetknop gebruikt de nieuw ingestelde actieve pose', camera.position.equals(new THREE.Vector3(-9,13,42)) && camera.quaternion.angleTo(laterRotation) < 1e-7);
   later.camera.position[0] = 500;
   controls.reset();
   check('WP1: resetpose is een kopie van configuratiegegevens', camera.position.x === -9);
+  resetPanel.dispose();
   controls.dispose();
 
   const cases = [
@@ -71,10 +75,11 @@ export async function testWorldContract(check, canvas) {
   check('WP1: actieve Journey vereist routefunctie', rejects(() => validateWorldContract({ ...fixture, config:{ ...custom, guidedJourney:true } }),'getJourneyRoute'));
   check('WP1: ongeldige optionele routefunctie afgewezen', rejects(() => validateWorldContract({ ...fixture, getJourneyRoute:42 }),'getJourneyRoute'));
   const button = document.createElement('button'), visibility = new EventTarget();
-  const modes = createFlightModes(camera, { getVelocity: out => out.set(0,0,0), setEnabled() {}, update() {} }, { button, visibility, status:null, progress:null });
+  const modes = createFlightModes(camera, { getVelocity: out => out.set(0,0,0), setEnabled() {}, update() {} }, { visibility });
+  const panel = createFlightPanel({ controls:{ isMouseEnabled:()=>false }, modes, engine:{ getQuality:()=>({ name:'balans' }) }, canvas, elements:{ journey:button } });
   modes.setRoute(null);
   check('WP1: zonder route is Guided-knop uit en starten onmogelijk', button.disabled && !modes.start() && modes.getState().mode === 'free');
-  modes.dispose();
+  panel.dispose(); modes.dispose();
 
   const scene = new THREE.Scene(); applyWorldEnvironment(scene, NEON_CITY_CONFIG);
   check('WP1: Neon City-achtergrond en mist behouden', scene.background.getHex() === 0x0b0616 && scene.fog.isFogExp2 && scene.fog.density === 0.006);
@@ -104,16 +109,18 @@ export async function testWorldContract(check, canvas) {
   const ui = document.createElement('div');
   ui.innerHTML = '<button id="quality-toggle"></button><button id="journey-toggle"></button><div id="performance"></div><div id="status"></div>';
   document.body.appendChild(ui);
-  let engine, observedCamera, observedScene, initialized = 0, disposed = 0;
+  let engine, enginePanel, observedCamera, observedScene, initialized = 0, disposed = 0;
   try {
     const empty = { ...fixture, init(s) { initialized++; observedScene = s; }, update(dt,c) { observedCamera = c; }, dispose() { disposed++; } };
-    engine = createEngine(host); engine.setWorld(empty); engine.start();
+    engine = createEngine(host, { ui:{ status:ui.querySelector('#status'), performance:ui.querySelector('#performance') } });
+    enginePanel = createFlightPanel({ controls:engine.controls, modes:engine.flightModes, engine, canvas:engine.canvas, elements:{ journey:ui.querySelector('#journey-toggle') } });
+    engine.setWorld(empty); engine.start();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     check('WP1: echte engine initialiseert contract zonder kern/route', initialized === 1 && observedCamera && observedCamera.position.equals(new THREE.Vector3(12,25,-30)) && observedCamera.fov === 75 && observedScene.fog === null && host.querySelectorAll('canvas').length === 1 && ui.querySelector('#journey-toggle').disabled);
     observedCamera.position.set(1,2,3);
     host.querySelector('canvas').dispatchEvent(new KeyboardEvent('keydown',{ code:'KeyR', bubbles:true, cancelable:true }));
     check('WP1: R via echte engine herstelt actieve wereldpose', observedCamera.position.equals(new THREE.Vector3(12,25,-30)) && observedCamera.quaternion.angleTo(expectedRotation) < 1e-7);
     check('WP1: engine weigert fout contract vóór actieve wereld wordt geraakt', rejects(() => engine.setWorld({ ...empty, update:null }),'update') && disposed === 0 && initialized === 1);
-  } finally { engine?.dispose(); host.remove(); ui.remove(); }
+  } finally { enginePanel?.dispose(); engine?.dispose(); host.remove(); ui.remove(); }
   check('WP1: engine verwijdert contractfixture en canvas', disposed === 1 && host.children.length === 0);
 }

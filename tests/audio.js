@@ -1,8 +1,9 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp1';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
 import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
-import { createAudioManager } from '../js/audio/audio-manager.js';
-import { coreMixAtDistance, AUDIO_SETTINGS } from '../js/audio/audio-settings.js';
+import { createAudioManager } from '../js/audio/audio-manager.js?v=wp2';
+import { coreMixAtDistance } from '../js/audio/audio-settings.js?v=wp2';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
 
 export async function testAudio(check) {
   let contexts = 0, sources = 0, playCalls = 0, closed = 0, disconnected = 0;
@@ -17,6 +18,7 @@ export async function testAudio(check) {
   };
   context.createMediaElementSource = element => { sources++; return { connect() {}, disconnect() { disconnected++; } }; };
   const manager = createAudioManager({
+    audio: NEON_CITY_CONFIG.audio,
     settings: { startStopSeconds: 0.001 },
     createContext() { contexts++; return context; },
     createElement() {
@@ -38,7 +40,7 @@ export async function testAudio(check) {
   manager.setMuted(true); manager.updateDistance(51); manager.setVolume(0.35); manager.setMuted(false);
   check('Audio: mute/volume behouden afstand en tijdlijn', manager.getState().coreMix === 0.5 && elements.every(element => element.currentTime === 17) && playCalls === 2 && gains[0].target === 0.35);
   manager.updateDistance(200);
-  check('Audio: alleen kernlaag valt weg; stadsgain blijft constant', gains[2].target === 0 && gains[1].value === AUDIO_SETTINGS.cityVolume && playCalls === 2);
+  check('Audio: alleen kernlaag valt weg; stadsgain blijft constant', gains[2].target === 0 && gains[1].value === NEON_CITY_CONFIG.audio.sources[0].gain && playCalls === 2);
   await manager.pause(); await manager.start();
   check('Audio: pauzeren/hervatten hergebruikt context en bronnen', contexts === 1 && sources === 2 && playCalls === 4 && elements.every(element => element.currentTime === 17) && manager.getState().state === 'playing');
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0,7,62);
@@ -51,7 +53,7 @@ export async function testAudio(check) {
   modes.dispose();
   await manager.dispose(); await manager.dispose();
   check('Audio: cleanup sluit context eenmaal en koppelt nodes los', closed === 1 && disconnected === 5 && elements.every(element => element.paused));
-  const failing = createAudioManager({ createContext: () => context, createElement() {
+  const failing = createAudioManager({ audio: NEON_CITY_CONFIG.audio, createContext: () => context, createElement() {
     const element = new EventTarget(); element.play = () => Promise.reject(new Error('Afspelen geweigerd')); element.pause = () => {}; element.load = () => {}; element.removeAttribute = () => {}; return element;
   } });
   await failing.start();

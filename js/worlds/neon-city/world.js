@@ -2,8 +2,8 @@ import * as THREE from '../../../lib/three/three.module.js';
 import { createBuildings } from './buildings.js?v=0.4B';
 import { createGrid } from './grid.js';
 import { createSphere } from './sphere.js?v=wp1';
-import { NEON_CITY_CONFIG } from './config.js';
-import { validateWorldConfig } from '../../world-contract.js';
+import { NEON_CITY_CONFIG } from './config.js?v=wp2';
+import { validateWorldConfig } from '../../world-contract.js?v=wp2';
 import { createAtmosphere } from './atmosphere.js';
 import { createNeonCityRoute } from './journey-route.js?v=wp1';
 
@@ -24,7 +24,10 @@ export function createNeonCity({ config = NEON_CITY_CONFIG } = {}) {
       scene.add(root);
     },
     getJourneyRoute() { return journeyRoute; },
-    getAudioState() { return { proximityDistance: sphere?.getDistance() ?? Infinity }; },
+    getAudioState() {
+      const proximityDistance = sphere?.getDistance() ?? Infinity;
+      return { distances: { 'energy-core': proximityDistance }, proximityDistance };
+    },
     // Compatibility accessor; the bootstrap now uses the neutral contract.
     getEnergyDistance() { return sphere?.getDistance() ?? Infinity; },
     update(dt, camera) { sphere?.update(dt, camera); atmosphere?.update(dt); },

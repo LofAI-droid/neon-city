@@ -1,4 +1,5 @@
 import * as THREE from '../lib/three/three.module.js';
+import { validateAudioConfig } from './audio/audio-settings.js?v=wp2';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const vector = value => Array.isArray(value) && value.length === 3 && Array.from(value).every(Number.isFinite);
@@ -30,6 +31,7 @@ export function validateWorldConfig(config) {
   }
   requireValue(typeof config.guidedJourney === 'boolean', 'guidedJourney', 'moet true of false zijn');
   requireValue(object(config.settings), 'settings', 'moet een object met wereldspecifieke instellingen zijn');
+  validateAudioConfig(config.audio);
   return config;
 }
 
