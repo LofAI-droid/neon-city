@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="nl"><meta charset="utf-8"><title>WP3 — wereldwissels</title>
+<style>
+  body{margin:0;background:#091321;color:#c9e8ee;font:13px -apple-system,BlinkMacSystemFont,sans-serif}
+  #world{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;outline:none}
+  .panel{position:fixed;left:20px;top:20px;max-width:530px;padding:16px;background:#091321e8;border:1px solid #6cbdc477;line-height:1.6}
+  button{margin:3px;padding:6px 9px;background:#17313c;color:#c9e8ee;border:1px solid #6cbdc477;cursor:pointer}
+  button:disabled{opacity:.45;cursor:default}input{vertical-align:middle}
+  #readout{white-space:pre-wrap;font:12px monospace}
+</style>
+<main id="world"></main>
+<div class="panel">
+  <strong>WP3 — technische wisseltest</strong><p>Deze Test World bestaat alleen in deze testpagina. Klik A → B → A, probeer een fout en herstel zonder herladen.</p>
+  <div><button id="neon">Neon City (A)</button><button id="test">Test World (B)</button><button id="back">Terug naar A</button><button id="fail">Foutwereld</button></div>
+  <p id="switch-status" role="status">Initialiseren…</p>
+  <div><button id="journey">Guided Journey</button><button id="reset">Terug naar start</button><button id="mouse">Muisblik: uit</button><button id="quality">Beeld: balans</button></div>
+  <div id="mode"></div><progress id="progress" max="1" value="0" hidden></progress><p id="flight-status"></p>
+  <div><button id="audio-start">Start audio</button><button id="audio-mute">Mute</button><input id="audio-volume" type="range" min="0" max="100" value="65"><output id="audio-volume-value">65%</output></div>
+  <p id="audio-status"></p><span id="audio-mix"></span><pre id="readout"></pre>
+</div>
+<script type="module" src="./world-switching.js?v=wp3"></script></html>

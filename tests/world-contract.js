@@ -2,10 +2,10 @@ import * as THREE from '../lib/three/three.module.js';
 import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
 import { validateWorldConfig, validateWorldContract, applyWorldEnvironment } from '../js/world-contract.js';
 import { createCamera, configureCamera } from '../js/camera.js?v=wp1';
-import { createControls } from '../js/controls.js?v=wp2';
+import { createControls } from '../js/controls.js?v=wp3';
 import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp2';
 import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
-import { createEngine } from '../js/engine.js?v=wp2';
+import { createEngine } from '../js/engine.js?v=wp3';
 import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp2';
 import { coreMixAtDistance } from '../js/audio/audio-settings.js';
 

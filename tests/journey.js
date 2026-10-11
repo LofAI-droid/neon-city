@@ -1,7 +1,7 @@
 import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
 import * as THREE from '../lib/three/three.module.js';
 import { createCamera } from '../js/camera.js?v=wp1';
-import { createControls } from '../js/controls.js?v=wp2';
+import { createControls } from '../js/controls.js?v=wp3';
 import { createBuildings } from '../js/worlds/neon-city/buildings.js';
 import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
 import { createJourney } from '../js/journey/journey.js';

@@ -1,7 +1,7 @@
 import * as THREE from '../lib/three/three.module.js';
 import { createCamera, configureCamera } from './camera.js?v=wp1';
 import { validateWorldContract, applyWorldEnvironment } from './world-contract.js?v=wp2';
-import { createControls } from './controls.js?v=wp2';
+import { createControls } from './controls.js?v=wp3';
 import { createFlightModes } from './journey/flight-modes.js?v=wp2';
 
 export function createEngine(container, { onUpdate, ui = {} } = {}) {
@@ -26,6 +26,8 @@ export function createEngine(container, { onUpdate, ui = {} } = {}) {
   let frames = 0;
   let elapsed = 0;
   let running = false;
+  let suspended = false;
+  let disposed = false;
   const frameTimes = new Float32Array(240);
   let sampleCount = 0;
   let sampleIndex = 0;
@@ -48,9 +50,11 @@ export function createEngine(container, { onUpdate, ui = {} } = {}) {
     const dt = previous === null ? 0 : Math.min((now - previous) / 1000, 0.05);
     const rawDelta = previous === null ? 0 : (now - previous) / 1000;
     previous = now;
-    flightModes.update(rawDelta);
-    world?.update(dt, camera);
-    onUpdate?.(dt, world);
+    if (!suspended) {
+      flightModes.update(rawDelta);
+      world?.update(dt, camera);
+      onUpdate?.(dt, world);
+    }
     renderer.render(scene, camera);
     if (rawDelta > 0) {
       frames++; elapsed += rawDelta;
@@ -67,30 +71,74 @@ export function createEngine(container, { onUpdate, ui = {} } = {}) {
   }
   return {
     canvas: renderer.domElement,
+    camera,
+    scene,
     controls,
     flightModes,
+    getWorld() { return world; },
+    isSuspended() { return suspended; },
+    getRenderStats() { return { draws: renderer.info.render.calls, lines: renderer.info.render.lines, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }; },
     getQuality() { return qualities[qualityIndex]; },
     cycleQuality() {
       qualityIndex = (qualityIndex + 1) % qualities.length;
       resize();
       previous = null; frames = 0; elapsed = 0; sampleCount = 0; sampleIndex = 0;
     },
-    setWorld(next) {
-      validateWorldContract(next); // Reject bad config before touching the active world.
+    suspendWorld() {
+      if (disposed) throw new Error('De engine is al opgeruimd.');
+      if (suspended) return;
+      suspended = true;
       flightModes.stop();
-      world?.dispose(); world = next;
-      configureCamera(camera, world.config.camera);
-      controls.setEnabled(true);
-      applyWorldEnvironment(scene, world.config);
-      world.init(scene);
+      flightModes.setRoute(null);
+      controls.setEnabled(false);
+      controls.setTransitionLocked(true);
+    },
+    clearWorld() {
+      if (disposed) return;
+      this.suspendWorld();
+      const old = world; world = null;
+      try { old?.dispose(); }
+      finally { scene.clear(); scene.background = null; scene.fog = null; previous = null; }
+    },
+    resumeWorld() {
+      if (disposed || !world) return;
       flightModes.setRoute(world.config.guidedJourney ? world.getJourneyRoute() : null);
+      controls.setEnabled(true);
+      controls.setTransitionLocked(false);
+      suspended = false;
       previous = null;
     },
-    start() { if (running) return; running = true; previous = null; renderer.setAnimationLoop(frame); if (status) status.hidden = true; },
+    setWorld(next) {
+      if (disposed) throw new Error('De engine is al opgeruimd.');
+      validateWorldContract(next); // Reject bad config before touching the active world.
+      try {
+        this.clearWorld();
+        configureCamera(camera, next.config.camera);
+        applyWorldEnvironment(scene, next.config);
+        next.init(scene);
+        flightModes.setRoute(next.config.guidedJourney ? next.getJourneyRoute() : null);
+        world = next;
+        controls.setEnabled(true);
+        controls.setTransitionLocked(false);
+        suspended = false;
+        previous = null;
+      } catch (error) {
+        try { next.dispose(); } catch (cleanupError) { console.error('Wereldopruiming na initialisatiefout:', cleanupError); }
+        scene.clear();
+        scene.background = null; scene.fog = null;
+        flightModes.setRoute(null);
+        throw error;
+      }
+    },
+    start() { if (running || disposed) return; running = true; previous = null; renderer.setAnimationLoop(frame); if (status) status.hidden = true; },
     dispose() {
+      if (disposed) return;
+      disposed = true;
       renderer.setAnimationLoop(null); running = false;
-      events.abort(); flightModes.dispose(); controls.dispose(); world?.dispose(); world = null;
-      renderer.dispose(); renderer.domElement.remove();
+      events.abort(); flightModes.dispose(); controls.dispose();
+      const old = world; world = null;
+      try { old?.dispose(); }
+      finally { scene.clear(); renderer.dispose(); renderer.domElement.remove(); }
     }
   };
 }

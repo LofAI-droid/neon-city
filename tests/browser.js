@@ -2,11 +2,12 @@ import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
 import * as THREE from '../lib/three/three.module.js';
 import { testWorldContract } from './world-contract.js';
 import { testWP2 } from './wp2.js';
+import { testWP3 } from './wp3.js';
 import { testEnergyCore } from './energy-core.js';
 import { testJourney } from './journey.js?v=wp2';
 import { testAudio } from './audio.js?v=wp2';
 import { createCamera } from '../js/camera.js?v=wp1';
-import { createControls } from '../js/controls.js?v=wp2';
+import { createControls } from '../js/controls.js?v=wp3';
 import { createBuildings } from '../js/worlds/neon-city/buildings.js';
 import { applyWorldEnvironment } from '../js/world-contract.js';
 import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp2';
@@ -89,5 +90,6 @@ try {
   testJourney(check, canvas);
   await testWorldContract(check, canvas);
   await testWP2(check, canvas);
+  await testWP3(check);
 } catch (error) { results.push(`FAIL — ${error.stack}`); }
 output.replaceChildren(...results.map(text => { const line = document.createElement('p'); line.textContent = text; return line; }));

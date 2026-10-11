@@ -1,14 +1,16 @@
 import { AUDIO_SETTINGS, validateAudioConfig, validateAudioSettings, mixAtDistance } from './audio-settings.js?v=wp2';
 
 export function createAudioManager({ audio, settings: overrides = {}, onChange = () => {}, createContext = () => new (window.AudioContext || window.webkitAudioContext)(), createElement = () => document.createElement('audio') } = {}) {
-  const descriptors = validateAudioConfig(audio).sources.map(source => ({ ...source, distance: source.distance && { ...source.distance } }));
+  const copySources = value => validateAudioConfig(value).sources.map(source => ({ ...source, distance: source.distance && { ...source.distance } }));
+  let descriptors = copySources(audio);
   const settings = validateAudioSettings({ ...AUDIO_SETTINGS, ...overrides });
-  const tracks = descriptors.map(descriptor => ({ descriptor, element: null, gain: null, node: null, mix: descriptor.type === 'global' ? 1 : 0, lastMix: -1 }));
-  const proximity = tracks.filter(track => track.descriptor.type === 'proximity');
+  const makeTracks = sources => sources.map(descriptor => ({ descriptor, element: null, gain: null, node: null, mix: descriptor.type === 'global' ? 1 : 0, lastMix: -1 }));
+  let tracks = makeTracks(descriptors);
+  let proximity = tracks.filter(track => track.descriptor.type === 'proximity');
   let context, master;
   let state = 'idle', muted = false, volume = settings.masterVolume;
   let distances = {}, message = tracks.length ? 'Audio staat uit.' : 'Deze wereld heeft geen audio.';
-  let generation = 0, stopTimer, startTimer, finishStop, finishStartTimeout;
+  let generation = 0, stopTimer, startTimer, finishStop, finishStartTimeout, switching = false;
   let graphEvents;
   const snapshot = () => ({
     state, muted, volume, sourceCount: tracks.length, distances: { ...distances },
@@ -42,10 +44,12 @@ export function createAudioManager({ audio, settings: overrides = {}, onChange =
     state = 'error'; message = text; masterTarget(); emit();
   }
   function initialize() {
-    if (context) return;
+    if (context && tracks.every(track => track.node)) return;
     graphEvents = new AbortController();
-    context = createContext();
-    master = context.createGain(); master.gain.value = 0; master.connect(context.destination);
+    if (!context) {
+      context = createContext();
+      master = context.createGain(); master.gain.value = 0; master.connect(context.destination);
+    }
     for (const track of tracks) {
       const { descriptor } = track;
       track.gain = context.createGain();
@@ -64,13 +68,16 @@ export function createAudioManager({ audio, settings: overrides = {}, onChange =
       }
     }, { signal: graphEvents.signal });
   }
-  async function releaseGraph() {
+  function releaseSources() {
     graphEvents?.abort(); graphEvents = null;
     for (const track of tracks) {
       if (track.element) { track.element.pause(); track.element.removeAttribute('src'); track.element.load(); }
       track.node?.disconnect(); track.gain?.disconnect();
       track.element = null; track.node = null; track.gain = null; track.lastMix = -1;
     }
+  }
+  async function releaseGraph() {
+    releaseSources();
     master?.disconnect(); master = null;
     const oldContext = context; context = null;
     if (oldContext && oldContext.state !== 'closed') await oldContext.close();
@@ -82,7 +89,7 @@ export function createAudioManager({ audio, settings: overrides = {}, onChange =
     },
     // Call only from a Start/Hervat button or another explicit user gesture.
     async start() {
-      if (state === 'disposed' || state === 'starting') return;
+      if (state === 'disposed' || state === 'starting' || switching) return;
       if (!tracks.length) { state = 'empty'; emit(); return; }
       if (state === 'playing' && context?.state === 'running') return;
       cancelTimers(); const token = ++generation;
@@ -114,7 +121,7 @@ export function createAudioManager({ audio, settings: overrides = {}, onChange =
       }
     },
     async pause() {
-      if (state === 'disposed' || !context || state === 'paused' || state === 'idle') return;
+      if (state === 'disposed' || switching || !context || state === 'paused' || state === 'idle') return;
       const token = ++generation; cancelTimers();
       state = 'pausing'; message = 'Audio wordt zacht gepauzeerd…'; emit();
       const now = hold(master.gain);
@@ -148,6 +155,36 @@ export function createAudioManager({ audio, settings: overrides = {}, onChange =
     updateDistance(value) {
       if (proximity.length > 1) throw new Error('updateDistance ondersteunt slechts één proximity-bron; gebruik updateDistances met distanceKey.');
       manager.updateDistances(proximity.length ? { [proximity[0].descriptor.distanceKey]: value } : {});
+    },
+    // A world switch changes source ownership, never the shared AudioContext or master settings.
+    // Callers must request a fresh user click before playing the new sources in Safari.
+    async setSources(nextAudio, { fadeSeconds = settings.startStopSeconds } = {}) {
+      const next = copySources(nextAudio); // Validate before touching active playback.
+      if (state === 'disposed') throw new Error('Audio is al opgeruimd.');
+      if (switching) throw new Error('Audiobronnen worden al gewisseld.');
+      if (!Number.isFinite(fadeSeconds) || fadeSeconds < 0) throw new Error('Ongeldige audio-fadeduur.');
+      switching = true;
+      const token = ++generation;
+      cancelTimers();
+      state = 'switching'; message = 'Audio wisselt van wereld…'; emit();
+      try {
+        if (master && tracks.length && fadeSeconds > 0) {
+          const now = hold(master.gain);
+          master.gain.linearRampToValueAtTime(0, now + fadeSeconds);
+          await new Promise(resolve => { finishStop = resolve; stopTimer = setTimeout(resolve, fadeSeconds * 1000 + 30); });
+          finishStop = null;
+        }
+        if (token !== generation || state === 'disposed') return false;
+        releaseSources();
+        descriptors = next;
+        tracks = makeTracks(descriptors);
+        proximity = tracks.filter(track => track.descriptor.type === 'proximity');
+        distances = {};
+        state = tracks.length ? 'idle' : 'empty';
+        message = tracks.length ? 'Nieuwe wereld geladen. Klik Start audio.' : 'Deze wereld heeft geen audio.';
+        emit();
+        return true;
+      } finally { switching = false; }
     },
     async dispose() {
       if (state === 'disposed') return;

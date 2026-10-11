@@ -3,6 +3,7 @@ import { resetCamera } from './camera.js?v=wp1';
 
 export function createControls(camera, canvas, { onReset = () => {} } = {}) {
   let enabled = true;
+  let transitionLocked = false;
   const keys = new Set();
   const velocity = new THREE.Vector3();
   const desired = new THREE.Vector3();
@@ -18,12 +19,13 @@ export function createControls(camera, canvas, { onReset = () => {} } = {}) {
   let turnSpeed = 0;
   const events = new AbortController();
   const on = (target, name, fn) => target.addEventListener(name, fn, { signal: events.signal });
-  const reset = () => { onReset(); resetCamera(camera); velocity.set(0, 0, 0); turnSpeed = 0; keys.clear(); };
+  const reset = () => { if (transitionLocked) return; onReset(); resetCamera(camera); velocity.set(0, 0, 0); turnSpeed = 0; keys.clear(); };
   const clear = () => { keys.clear(); velocity.set(0, 0, 0); turnSpeed = 0; dragging = false; };
   on(window, 'keydown', event => {
     if (!supported.has(event.code) || event.metaKey || event.ctrlKey || event.altKey) return;
     if (event.target.closest('button, input, textarea, select, [contenteditable]')) return;
     event.preventDefault();
+    if (transitionLocked) return;
     if (event.code === 'KeyR') { if (!event.repeat) reset(); return; }
     if (!enabled) return;
     keys.add(event.code);
@@ -54,6 +56,7 @@ export function createControls(camera, canvas, { onReset = () => {} } = {}) {
     setMouseEnabled(value) { mouseEnabled = Boolean(value); dragging = false; canvas.style.cursor = mouseEnabled ? 'grab' : 'default'; },
     getVelocity(target) { return target.copy(velocity); },
     setEnabled(value, inheritedVelocity) { clear(); enabled = value; if (enabled && inheritedVelocity) velocity.copy(inheritedVelocity); },
+    setTransitionLocked(value) { transitionLocked = Boolean(value); if (transitionLocked) clear(); },
     update(dt) {
       if (!enabled) return;
       const move = Number(keys.has('ArrowUp')) - Number(keys.has('ArrowDown'));

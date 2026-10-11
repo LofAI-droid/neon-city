@@ -5,7 +5,7 @@ export function createAudioPanel(manager, { elements, focusTarget, mixSourceId, 
   const text = (element, value) => { if (element.textContent !== value) element.textContent = value; };
   function render() {
     const current = manager.getState();
-    start.disabled = !current.sourceCount || current.state === 'starting' || current.state === 'pausing';
+    start.disabled = !current.sourceCount || ['starting', 'pausing', 'switching'].includes(current.state);
     text(start, current.state === 'playing' ? (current.contextState === 'running' ? labels.pause ?? 'Pauzeer audio' : labels.resume ?? 'Hervat audio') : labels.start ?? 'Start audio');
     text(mute, current.muted ? labels.unmute ?? 'Unmute' : labels.mute ?? 'Mute');
     mute.setAttribute('aria-pressed', String(current.muted));
@@ -27,5 +27,10 @@ export function createAudioPanel(manager, { elements, focusTarget, mixSourceId, 
   }, { signal: events.signal });
   slider.addEventListener('input', () => manager.setVolume(Number(slider.value) / 100), { signal: events.signal });
   render();
-  return { render, update(dt) { elapsed += dt; if (elapsed >= 0.2) { elapsed = 0; render(); } }, dispose() { events.abort(); } };
+  return {
+    render,
+    setPresentation({ sourceId, label = 'Nabijheid' } = {}) { mixSourceId = sourceId; mixLabel = label; render(); },
+    update(dt) { elapsed += dt; if (elapsed >= 0.2) { elapsed = 0; render(); } },
+    dispose() { events.abort(); }
+  };
 }
