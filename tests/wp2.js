@@ -1,14 +1,14 @@
 import * as THREE from '../lib/three/three.module.js';
-import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
 import { validateWorldConfig } from '../js/world-contract.js?v=wp2';
 import { validateAudioConfig, MAX_AUDIO_SOURCES, mixAtDistance } from '../js/audio/audio-settings.js?v=wp2';
 import { createAudioManager } from '../js/audio/audio-manager.js?v=wp3';
 import { createAudioPanel } from '../js/audio/audio-panel.js?v=wp3';
 import { createCamera } from '../js/camera.js?v=wp1';
 import { createControls } from '../js/controls.js?v=wp3';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
-import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp2';
-import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp4';
+import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp4';
+import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp4';
 
 const source = NEON_CITY_CONFIG.audio.sources;
 const audio = sources => ({ sources });

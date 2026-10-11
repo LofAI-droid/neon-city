@@ -25,6 +25,10 @@ export const NEON_CITY_CONFIG = {
   },
   ui: { mixSourceId: 'energy-core', mixLabel: 'Kernmix' },
   settings: {
-    energyCore: { position: [0, 19, -82], settings: ENERGY_CORE_DEFAULTS }
+    energyCore: { position: [0, 19, -82], settings: ENERGY_CORE_DEFAULTS },
+    journey: {
+      clearance: 0.8, coreRadius: 13.5,
+      entry: { speed: 16 / 1.875, minDuration: 2.5, safetyStepSeconds: 0.04, velocityMode: 'inherit', velocityFallback: 'zero' }
+    }
   }
 };

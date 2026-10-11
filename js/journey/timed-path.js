@@ -17,8 +17,11 @@ export function createTimedPath(keys) {
   };
 }
 
-export function createEntryPath(points, initialVelocity = new THREE.Vector3()) {
-  const durations = points.slice(1).map((point, i) => Math.max(2.5, point.distanceTo(points[i]) / 16 * 1.875));
+export function createEntryPath(points, initialVelocity = new THREE.Vector3(), settings = {}) {
+  const speed = settings.speed ?? 16 / 1.875;
+  const minDuration = settings.minDuration ?? 2.5;
+  const maxDuration = settings.maxDuration ?? Infinity;
+  const durations = points.slice(1).map((point, i) => Math.min(maxDuration, Math.max(minDuration, point.distanceTo(points[i]) / speed)));
   const total = durations.reduce((sum, value) => sum + value, 0);
   return {
     duration: total,

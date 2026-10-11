@@ -1,8 +1,8 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
-import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp4';
+import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp4';
 import { createAudioManager } from '../js/audio/audio-manager.js?v=wp3';
-import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
 const output = document.querySelector('#results');
 const startButton = document.querySelector('#start'), resumeButton = document.querySelector('#resume'), missingButton = document.querySelector('#missing');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

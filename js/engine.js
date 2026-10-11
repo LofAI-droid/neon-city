@@ -2,7 +2,8 @@ import * as THREE from '../lib/three/three.module.js';
 import { createCamera, configureCamera } from './camera.js?v=wp1';
 import { validateWorldContract, applyWorldEnvironment } from './world-contract.js?v=wp2';
 import { createControls } from './controls.js?v=wp3';
-import { createFlightModes } from './journey/flight-modes.js?v=wp2';
+import { createFlightModes } from './journey/flight-modes.js?v=wp4';
+import { activeFrameSeconds } from './active-time.js';
 
 export function createEngine(container, { onUpdate, ui = {} } = {}) {
   const scene = new THREE.Scene();
@@ -47,11 +48,11 @@ export function createEngine(container, { onUpdate, ui = {} } = {}) {
   }, { signal: events.signal });
   function frame(now) {
     if (document.hidden) { previous = null; return; }
-    const dt = previous === null ? 0 : Math.min((now - previous) / 1000, 0.05);
-    const rawDelta = previous === null ? 0 : (now - previous) / 1000;
+    const dt = activeFrameSeconds(previous, now);
+    const rawDelta = previous === null ? 0 : Math.max(0, (now - previous) / 1000);
     previous = now;
     if (!suspended) {
-      flightModes.update(rawDelta);
+      flightModes.update(dt);
       world?.update(dt, camera);
       onUpdate?.(dt, world);
     }

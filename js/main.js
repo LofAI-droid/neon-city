@@ -4,8 +4,8 @@ try {
   // Only this page adapter knows its DOM selectors and production world list.
   const [{ createEngine }, { createNeonCity }, { createFlightPanel }, { createAudioManager },
     { createAudioPanel }, { createWorldRegistry }, { createWorldManager }] = await Promise.all([
-    import('./engine.js?v=wp3'), import('./worlds/neon-city/world.js?v=wp2'),
-    import('./ui/flight-panel.js?v=wp2'), import('./audio/audio-manager.js?v=wp3'),
+    import('./engine.js?v=wp4'), import('./worlds/neon-city/world.js?v=wp4'),
+    import('./ui/flight-panel.js?v=wp4'), import('./audio/audio-manager.js?v=wp3'),
     import('./audio/audio-panel.js?v=wp3'), import('./world-registry.js?v=wp3'),
     import('./world-manager.js?v=wp3')
   ]);

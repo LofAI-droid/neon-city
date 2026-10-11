@@ -1,9 +1,9 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createEngine } from '../js/engine.js?v=wp3';
+import { createEngine } from '../js/engine.js?v=wp4';
 import { createAudioManager } from '../js/audio/audio-manager.js?v=wp3';
 import { createWorldRegistry } from '../js/world-registry.js?v=wp3';
 import { createWorldManager } from '../js/world-manager.js?v=wp3';
-import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp2';
+import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp4';
 import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js';
 
 const rejects = (fn, part) => { try { fn(); return false; } catch (error) { return error.message.includes(part); } };

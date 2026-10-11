@@ -1,6 +1,6 @@
 import * as THREE from '../../../lib/three/three.module.js';
 
-import { NEON_CITY_CONFIG } from './config.js';
+import { NEON_CITY_CONFIG } from './config.js?v=wp4';
 
 export function createNeonCityRoute(bounds, config = NEON_CITY_CONFIG) {
   const positions = [
@@ -16,9 +16,12 @@ export function createNeonCityRoute(bounds, config = NEON_CITY_CONFIG) {
     [65,0,19,-82], [70,0,19,-82], [75,0,19,-82], [80,0,19,-82],
     [85,0,19,-82], [90,0,19,-82]
   ].map(([time,...value]) => ({ time, value }));
-  const clearance = 0.8;
+  const journey = config.settings.journey ?? {};
+  const clearance = journey.clearance ?? 0.8;
+  const coreRadius = journey.coreRadius ?? 13.5;
+  if (!Number.isFinite(clearance) || clearance < 0 || !Number.isFinite(coreRadius) || coreRadius <= 0) throw new Error('Ongeldige Neon City-veiligheidsmarge voor Journey.');
   const coreCenter = new THREE.Vector3(...config.settings.energyCore.position);
-  const isSafe = point => point.y > 1 && point.distanceToSquared(coreCenter) > 13.5**2 && !bounds.some(box => point.x >= box.min.x-clearance && point.x <= box.max.x+clearance && point.y >= box.min.y-clearance && point.y <= box.max.y+clearance && point.z >= box.min.z-clearance && point.z <= box.max.z+clearance);
+  const isSafe = point => point.y > 1 && point.distanceToSquared(coreCenter) > coreRadius**2 && !bounds.some(box => point.x >= box.min.x-clearance && point.x <= box.max.x+clearance && point.y >= box.min.y-clearance && point.y <= box.max.y+clearance && point.z >= box.min.z-clearance && point.z <= box.max.z+clearance);
   const segmentSafe = (a,b) => {
     const sample = new THREE.Vector3(); const steps = Math.max(1, Math.ceil(a.distanceTo(b) / 0.4));
     for (let i=0; i<=steps; i++) if (!isSafe(sample.copy(a).lerp(b,i/steps))) return false;
@@ -26,7 +29,7 @@ export function createNeonCityRoute(bounds, config = NEON_CITY_CONFIG) {
   };
   const sky = Math.max(100, ...bounds.map(box => box.max.y + 8));
   return {
-    duration: 90, positions, targets, isSafe,
+    duration: 90, positions, targets, isSafe, entry: journey.entry,
     planEntry(origin, begin) {
       if (!isSafe(origin)) return null;
       if (segmentSafe(origin, begin)) return [origin, begin];

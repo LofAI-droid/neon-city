@@ -1,9 +1,9 @@
 import * as THREE from '../lib/three/three.module.js';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
-import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp1';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp4';
+import { createNeonCityRoute } from '../js/worlds/neon-city/journey-route.js?v=wp4';
 import { createAudioManager } from '../js/audio/audio-manager.js?v=wp3';
 import { coreMixAtDistance } from '../js/audio/audio-settings.js?v=wp2';
-import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
 
 export async function testAudio(check) {
   let contexts = 0, sources = 0, playCalls = 0, closed = 0, disconnected = 0;

@@ -2,10 +2,10 @@ import * as THREE from '../../../lib/three/three.module.js';
 import { createBuildings } from './buildings.js?v=0.4B';
 import { createGrid } from './grid.js';
 import { createSphere } from './sphere.js?v=wp1';
-import { NEON_CITY_CONFIG } from './config.js?v=wp2';
+import { NEON_CITY_CONFIG } from './config.js?v=wp4';
 import { validateWorldConfig } from '../../world-contract.js?v=wp2';
 import { createAtmosphere } from './atmosphere.js';
-import { createNeonCityRoute } from './journey-route.js?v=wp1';
+import { createNeonCityRoute } from './journey-route.js?v=wp4';
 
 export function createNeonCity({ config = NEON_CITY_CONFIG } = {}) {
   validateWorldConfig(config);

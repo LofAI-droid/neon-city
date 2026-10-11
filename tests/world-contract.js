@@ -1,12 +1,12 @@
 import * as THREE from '../lib/three/three.module.js';
-import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
 import { validateWorldConfig, validateWorldContract, applyWorldEnvironment } from '../js/world-contract.js';
 import { createCamera, configureCamera } from '../js/camera.js?v=wp1';
 import { createControls } from '../js/controls.js?v=wp3';
-import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp2';
-import { createFlightModes } from '../js/journey/flight-modes.js?v=wp2';
-import { createEngine } from '../js/engine.js?v=wp3';
-import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp2';
+import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp4';
+import { createFlightModes } from '../js/journey/flight-modes.js?v=wp4';
+import { createEngine } from '../js/engine.js?v=wp4';
+import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp4';
 import { coreMixAtDistance } from '../js/audio/audio-settings.js';
 
 const copyConfig = () => structuredClone(NEON_CITY_CONFIG);

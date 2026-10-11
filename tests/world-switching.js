@@ -1,11 +1,11 @@
-import { createEngine } from '../js/engine.js?v=wp3';
+import { createEngine } from '../js/engine.js?v=wp4';
 import { createAudioManager } from '../js/audio/audio-manager.js?v=wp3';
 import { createAudioPanel } from '../js/audio/audio-panel.js?v=wp3';
-import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp2';
+import { createFlightPanel } from '../js/ui/flight-panel.js?v=wp4';
 import { createWorldRegistry } from '../js/world-registry.js?v=wp3';
 import { createWorldManager } from '../js/world-manager.js?v=wp3';
-import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp2';
-import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp2';
+import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp4';
+import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
 import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js';
 
 const find = id => document.querySelector(`#${id}`);
