@@ -4,7 +4,7 @@ import { createAudioManager } from '../js/audio/audio-manager.js?v=wp3';
 import { createWorldRegistry } from '../js/world-registry.js?v=wp3';
 import { createWorldManager } from '../js/world-manager.js?v=wp3';
 import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp4';
-import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js';
+import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js?v=wp5';
 
 const rejects = (fn, part) => { try { fn(); return false; } catch (error) { return error.message.includes(part); } };
 const rejectsAsync = async (fn, part) => { try { await fn(); return false; } catch (error) { return error.message.includes(part); } };
@@ -96,7 +96,7 @@ export async function testWP3(check) {
     check('WP3: oude tracks weg, AudioContext en masterinstellingen behouden', audio.getState().sourceCount === 0 && fake.elements.slice(0,2).every(element => element.paused && element.src === '') && fake.counts.contexts === 1 && fake.counts.closes === 0 && audio.getState().muted && audio.getState().volume === 0.3);
     engine.camera.position.set(100,100,100); engine.controls.reset();
     check('WP3: R gebruikt startpose van de testwereld', engine.camera.position.equals(new THREE.Vector3(6,4,18)));
-    check('WP3: testwereld heeft één eigen mesh en geen Neon-objecten', engine.scene.children.length === 1 && engine.scene.children[0].children.length === 1 && tracker.inits === 1);
+    check('WP3: testwereld heeft eigen objecten en geen Neon-objecten', engine.scene.children.length === 1 && engine.scene.children[0].children.length === 2 && tracker.inits === 1);
     await manager.switchWorld('neon-city'); await tick();
     check('WP3: A→B→A maakt nieuwe Neon City-instantie', engine.getWorld() !== activeBefore && engine.scene.fog?.isFogExp2 && engine.camera.position.equals(new THREE.Vector3(0,7,62)) && tracker.disposes === 1);
     check('WP3: nieuwe muziek wacht op Start, oude tijdlijn start niet vanzelf', audio.getState().state === 'idle' && audio.getState().sourceCount === 2 && fake.counts.plays === plays);
@@ -118,7 +118,7 @@ export async function testWP3(check) {
     check('WP3: herstel na init-fout zonder reload', manager.getState().activeId === 'neon-city' && engine.getWorld()?.config.id === 'neon-city' && engine.scene.children.length === 1);
     for (let i = 0; i < 20; i++) await manager.switchWorld(i % 2 ? 'neon-city' : 'test-world');
     check('WP3: twintig extra wissels houden één canvas en één wereld vast', host.querySelectorAll('canvas').length === 1 && engine.scene.children.length === 1 && manager.getState().activeId === 'neon-city' && fake.counts.contexts === 1);
-    check('WP3: testwereldresources worden per activatie opgeruimd', tracker.inits === tracker.disposes && tracker.resources === 2 * tracker.disposes);
+    check('WP3: testwereldresources worden per activatie opgeruimd', tracker.inits === tracker.disposes && tracker.resources === tracker.createdResources);
     await audio.start();
     const pending = manager.switchWorld('test-world');
     await manager.dispose(); await pending;

@@ -9,7 +9,7 @@ import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp4';
 import { createEngine } from '../js/engine.js?v=wp4';
 import { createWorldRegistry } from '../js/world-registry.js?v=wp3';
 import { createWorldManager } from '../js/world-manager.js?v=wp3';
-import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js';
+import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js?v=wp5';
 import { createTechnicalRoute, TECHNICAL_CAMERA } from './technical-route.js';
 
 const rejects = (action, text) => { try { action(); return false; } catch (error) { return error.message.includes('Ongeldige Journey-route') && error.message.includes(text); } };

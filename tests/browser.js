@@ -2,8 +2,9 @@ import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
 import * as THREE from '../lib/three/three.module.js';
 import { testWorldContract } from './world-contract.js';
 import { testWP2 } from './wp2.js';
-import { testWP3 } from './wp3.js';
-import { testWP4 } from './wp4.js';
+import { testWP3 } from './wp3.js?v=wp5';
+import { testWP4 } from './wp4.js?v=wp5';
+import { testWP5 } from './wp5.js';
 import { testEnergyCore } from './energy-core.js';
 import { testJourney } from './journey.js?v=wp4';
 import { testAudio } from './audio.js?v=wp2';
@@ -93,5 +94,6 @@ try {
   await testWP2(check, canvas);
   await testWP3(check);
   await testWP4(check);
+  await testWP5(check, message => results.push(`INFO — ${message}`));
 } catch (error) { results.push(`FAIL — ${error.stack}`); }
 output.replaceChildren(...results.map(text => { const line = document.createElement('p'); line.textContent = text; return line; }));

@@ -6,7 +6,7 @@ import { createWorldRegistry } from '../js/world-registry.js?v=wp3';
 import { createWorldManager } from '../js/world-manager.js?v=wp3';
 import { createNeonCity } from '../js/worlds/neon-city/world.js?v=wp4';
 import { NEON_CITY_CONFIG } from '../js/worlds/neon-city/config.js?v=wp4';
-import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js';
+import { createTestWorld, TEST_WORLD_CONFIG } from './test-world.js?v=wp5';
 
 const find = id => document.querySelector(`#${id}`);
 const status = find('switch-status');
@@ -15,10 +15,12 @@ function renderReadout(state = manager?.getState()) {
   if (!engine || !audio) return;
   const scene = engine.scene;
   const stats = engine.getRenderStats();
-  find('readout').textContent = `Wereld: ${state?.activeId ?? 'geen'}\nCanvas: ${find('world').querySelectorAll('canvas').length} · scèneobjecten: ${scene.children.length}\nDrawcalls vorige frame: ${stats.draws} · geometrieën: ${stats.geometries} · textures: ${stats.textures}\nCamera: ${engine.camera.position.toArray().map(n => n.toFixed(1)).join(', ')}\nMist: ${scene.fog ? 'aan' : 'uit'} · Audio: ${audio.getState().state}`;
+  const asset = engine.getWorld()?.getAssetState?.();
+  find('readout').textContent = `Wereld: ${state?.activeId ?? 'geen'}\nCanvas: ${find('world').querySelectorAll('canvas').length} · scèneobjecten: ${scene.children.length}\nDrawcalls vorige frame: ${stats.draws} · geometrieën: ${stats.geometries} · textures: ${stats.textures}\nCamera: ${engine.camera.position.toArray().map(n => n.toFixed(1)).join(', ')}\nMist: ${scene.fog ? 'aan' : 'uit'} · Audio: ${audio.getState().state}\nTestasset: ${asset?.status ?? 'n.v.t.'}\n${find('performance').textContent} · ${find('performance').title}`;
 }
 try {
   engine = createEngine(find('world'), {
+    ui: { performance: find('performance') },
     onUpdate(dt, world) {
       audio.updateAudioState(world?.getAudioState() ?? {});
       audioPanel.update(dt);
